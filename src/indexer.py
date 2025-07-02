@@ -8,11 +8,10 @@ def build_index(docs):
         model="text-embedding-3-small",
         openai_api_key=OPENAI_API_KEY,
     )
-    db = Chroma.from_documents(
-        documents=docs,
-        embedding_function=embedder,
-        persist_directory=PERSIST_DIRECTORY,
-    )
+    # NOTE: Passing the embedding function POSITIONALLY avoids an upstream bug in
+    # `Chroma.from_documents` where providing it as a keyword results in
+    # `TypeError: got multiple values for keyword argument 'embedding_function'`.
+    db = Chroma.from_documents(docs, embedder, persist_directory=PERSIST_DIRECTORY)
     db.persist()
     return db
 
