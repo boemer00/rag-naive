@@ -1,0 +1,7 @@
+python-dotenv==1.1.1
+pypdf==5.7.0
+langchain==0.3.26
+langchain-community==0.3.26
+langchain-core==0.3.67
+langchain_chroma==0.2.4
+langchain-text-splitters==0.3.8
