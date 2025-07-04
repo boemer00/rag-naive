@@ -1,114 +1,106 @@
 # RAG-Naive
 
-A minimal, self-contained Retrieval-Augmented Generation (RAG) pipeline built with **LangChain**, **OpenAI**, and **Chroma**. It ingests a PDF, stores chunk embeddings locally, and answers questions via a simple CLI.
+A minimal, self-contained Retrieval-Augmented Generation (RAG) pipeline built with **LangChain**, **OpenAI**, and **Chroma**.
+It ingests a PDF, stores chunk embeddings locally, and answers questions from the command line in one step.
+
+---
+
+## Quick Start
+```bash
+# 1. Install deps
+pip install -r requirements.txt
+
+# 2. Export your OpenAI key
+export OPENAI_API_KEY=sk-...
+
+# 3. Ask a question (index builds automatically on first run)
+python main.py "What are the key findings presented in the paper?"
+```
+
+> The first invocation builds a vector index under `db/`. Subsequent runs reuse it and answer instantly.
 
 ---
 
 ## Features
-* End-to-end RAG workflow: PDF loading → text splitting → vector index → LLM QA chain
-* Local persistent index for instant reuse (stored in `db/` by default)
-* One-command setup and querying:
-  ```bash
-  python main.py 'What are the key findings or results presented in the paper?'
-  ```
-* Easily extensible—add more documents, change models, or swap components.
+* End-to-end RAG flow: **PDF loader → chunk splitter → Chroma vector store → LLM answer**
+* Persistent local index for offline reuse (`db/` directory)
+* Smart metadata boosting – questions about *title* or *author* are answered more reliably
+* Zero configuration beyond `OPENAI_API_KEY`
 
 ---
 
-## Project Structure
+## Project Layout
 ```text
 rag-naive/
 ├── raw_data/               # Source documents (PDFs, etc.)
+│   └── rag_intensive_nlp_tasks.pdf
 ├── src/
-│   ├── loaders.py          # PDF loader
-│   ├── splitters.py        # Text splitter
-│   ├── indexer.py          # Build/load Chroma vector store
-│   └── query.py            # Prompt + LLM helpers
-├── main.py                 # Entry-point script
-├── config.py               # Environment variable handling
-├── requirements.txt        # Python dependencies
-└── README.md               # This file
+│   ├── loaders.py          # PDF → Document objects
+│   ├── splitters.py        # Chunking & section tagging
+│   ├── indexer.py          # Build/load Chroma DB
+│   ├── retrieval.py        # Metadata-aware retrieval helper
+│   ├── utils.py            # Convenience loader for default PDF
+│   └── chain.py            # Prompt & LCEL chain factory
+├── main.py                 # CLI entry point
+├── config.py               # Env-driven configuration
+├── requirements.txt        # Locked dependencies
+└── README.md               # You are here
 ```
 
 ---
 
-## Prerequisites
-* Python **3.12** or newer
-* A valid **OpenAI API key**
+## Configuration
+All runtime options are controlled via environment variables (loaded automatically with `python-dotenv`):
 
-> 💡 The pipeline defaults to model `gpt-4.1-nano-2025-04-14`. Feel free to replace this with the OpenAI model of your choice in `config.py`.
+| Variable            | Default                         | Description                              |
+|---------------------|---------------------------------|------------------------------------------|
+| `OPENAI_API_KEY`    | — (required)                    | Your OpenAI secret key                   |
+| `MODEL_NAME`        | `gpt-4.1-nano-2025-04-14`       | Chat model used for answers              |
+| `EMBEDDING_MODEL`   | `text-embedding-3-large`        | Model used to embed chunks               |
+| `PERSIST_DIRECTORY` | `db`                            | Folder to store the Chroma collection    |
+| `CHAIN_TYPE`        | `map_reduce`                    | LLM chaining strategy (future feature)   |
 
----
-
-## Installation
-# Using **pyenv** + **pyenv-virtualenv** (recommended)
-```bash
-git clone https://github.com/your-org/rag-naive.git
-cd rag-naive
-
-# Install the exact Python version (if not already available)
-pyenv install 3.12.3   # or any 3.9+ version you prefer
-
-# Create and activate a dedicated virtualenv
-pyenv virtualenv 3.12.3 rag-naive-env
-pyenv local rag-naive-env  # sets .python-version for this project
-
-pip install -r requirements.txt
-```
-
----
-
-## Environment Variables
-Create a `.env` file in the project root (an example `.env.example` is provided):
-
+Create a `.env` file:
 ```env
 OPENAI_API_KEY=sk-...
-# Optional: override where the Chroma DB is stored
-PERSIST_DIRECTORY=db
-```
-
-Load variables automatically via `python-dotenv` on startup.
-
----
-
-## One-Time Index Build
-The first run will automatically build the vector index if `db/` is missing.
-To force a rebuild later, delete `db/` or pass the `--reindex` flag (coming soon):
-
-```bash
-python main.py --reindex
+# Optional overrides:
+# MODEL_NAME=gpt-3.5-turbo
+# PERSIST_DIRECTORY=my_db
 ```
 
 ---
 
-## Asking Questions
-```bash
-python main.py "What are the key findings of the paper?"
-```
-The script will:
-1. Ensure the index exists (building it if necessary).
-2. Retrieve top-k relevant chunks.
-3. Pass context + question to the LLM.
-4. Print the answer.
+## How It Works (Technical Walk-Through)
+1. **Loading** – `PyPDFLoader` reads each PDF into `langchain.schema.Document` objects.
+2. **Splitting** – `RecursiveCharacterTextSplitter` chunks text (~1000 chars with 200 overlap) and tags sections (Introduction, Methods, …).
+3. **Embedding & Storage** – Each chunk is embedded via `OpenAIEmbeddings` (`text-embedding-3-large`) and stored in a local **Chroma** collection.
+4. **Retrieval** – On a query, the top-k semantically similar chunks are fetched.
+   If the question references *title* or *author*, page-0 chunks are boosted.
+5. **Generation** – Chunks are injected into a carefully crafted prompt and answered by the chat model.
 
 ---
 
-## How It Works
-1. **Loaders** – `PyPDFLoader` reads the PDF(s) in `raw_data/`.
-2. **Splitters** – `RecursiveCharacterTextSplitter` chunks each document (default 1000 chars with 200 overlap).
-3. **Indexer** – Each chunk is embedded via `text-embedding-3-small` and stored in a **Chroma** collection persisted locally.
-4. **Query Pipeline** – A LangChain Expression (LCEL) chain retrieves the most similar chunks, injects them into a prompt, and calls the Chat model to generate an answer.
+## Rebuilding the Index
+Delete the folder specified by `PERSIST_DIRECTORY` (default `db/`) and re-run `main.py`.
+A CLI flag (`--reindex`) will be added soon – track progress in `issues/5`.
+
+---
+
+## Extending
+* **Multiple PDFs** – Loop through `raw_data/` in `utils.load_source_docs`.
+* **Different splitter** – Swap `RecursiveCharacterTextSplitter` for `TokenTextSplitter`.
+* **Alternate LLM** – Set `MODEL_NAME` to any model supported by `langchain_openai.ChatOpenAI`.
 
 ---
 
 ## Troubleshooting
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| `OPENAI_API_KEY not set` | Missing `.env` | Add your key and restart |
-| `TypeError: got multiple values for keyword argument 'embedding_function'` | Chroma bug when passing `embedding_function` twice | Use latest `master` (fixed in `src/indexer.py`) |
-| Blank answer / "I don't know" | No relevant chunks retrieved | Add more documents or increase `k` in `main.py` |
+| Symptom                                         | Fix |
+|-------------------------------------------------|-----|
+| `OPENAI_API_KEY environment variable is required` | Export your key or create `.env` |
+| `InvalidRequestError: model not found`          | Change `MODEL_NAME` to one you have access to |
+| No answer / “I don’t know”                      | Increase `k` in `main.answer()` or add more docs |
 
 ---
 
 ## License
-[MIT](LICENSE)
+MIT
