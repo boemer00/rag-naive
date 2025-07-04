@@ -6,7 +6,7 @@ from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
-from config import MODEL_NAME, OPENAI_API_KEY
+from config import MODEL_NAME, get_openai_api_key
 from src.indexer import ensure_index_exists
 from src.utils import load_source_docs
 
@@ -42,7 +42,7 @@ def get_chain(retriever: BaseRetriever, *, model_name: Optional[str]=None, tempe
         model=model_name or MODEL_NAME,
         temperature=temperature,
         max_tokens=max_tokens,
-        openai_api_key=OPENAI_API_KEY,
+        openai_api_key=get_openai_api_key(),
     )
     return (
         {'context': retriever, 'question': RunnablePassthrough()}
