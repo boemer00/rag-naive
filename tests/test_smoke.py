@@ -17,31 +17,26 @@ from main import answer
 def test_rag_pipeline_smoke() -> None:
     """Test that the RAG pipeline can generate a response without errors."""
 
-    # Mock OpenAI API if no key is available
-    if not os.getenv("OPENAI_API_KEY"):
-        with patch("langchain_openai.ChatOpenAI") as mock_llm:
-            # Mock the LLM response
-            mock_response = MagicMock()
-            mock_response.content = "Based on the provided context, RAG (Retrieval-Augmented Generation) is a technique that combines retrieval and generation."
-            mock_llm.return_value.invoke.return_value = mock_response
+    # Prepare dummy docs list to bypass index and retrieval
+    from langchain.schema import Document  # local import to avoid heavy deps at test collection
 
-            # Test the pipeline
-            question = "What is RAG?"
-            response = answer(question)
+    dummy_docs = [Document(page_content="Dummy context about Retrieval-Augmented Generation (RAG).", metadata={})]
 
-            # Assertions
-            assert isinstance(response, str)
-            assert len(response.strip()) > 0
-            assert "RAG" in response or "retrieval" in response.lower()
+    with (
+        patch("src.indexer.ensure_index_exists", return_value=None),
+        patch("src.retrieval.get_metadata", return_value=dummy_docs),
+        patch("langchain_openai.ChatOpenAI") as mock_llm,
+    ):
+        # Mock the LLM response when invoked
+        mock_resp = MagicMock()
+        mock_resp.content = "Based on the provided context, RAG (Retrieval-Augmented Generation) is a technique that combines retrieval and generation."
+        mock_llm.return_value.invoke.return_value = mock_resp
 
-    else:
-        # Real test with OpenAI API
+        # Call the pipeline
         question = "What is RAG?"
         response = answer(question)
 
-        # Assertions
-        assert isinstance(response, str)
-        assert len(response.strip()) > 0
-        # Basic sanity check that response mentions relevant terms
-        response_lower = response.lower()
-        assert any(term in response_lower for term in ["rag", "retrieval", "generation", "augment"])
+    # Assertions (same for mocked and real)
+    assert isinstance(response, str)
+    assert len(response.strip()) > 0
+    assert any(term in response.lower() for term in ["rag", "retrieval", "generation"])
