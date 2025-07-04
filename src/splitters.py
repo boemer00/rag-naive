@@ -3,7 +3,7 @@ import re
 
 def split_text(docs, chunk_size: int=1000, chunk_overlap: int=200):
     splitter = RecursiveCharacterTextSplitter(
-        separators=['\n\n', '\n', ' ', ''],
+        separators=['\n\n', '\n', ' '],
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
     )
