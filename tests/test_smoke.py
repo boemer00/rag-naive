@@ -23,8 +23,8 @@ def test_rag_pipeline_smoke() -> None:
     dummy_docs = [Document(page_content="Dummy context about Retrieval-Augmented Generation (RAG).", metadata={})]
 
     with (
-        patch("src.indexer.ensure_index_exists", return_value=None),
-        patch("src.retrieval.get_metadata", return_value=dummy_docs),
+        patch("main.ensure_index_exists", return_value=None),  # bypass index build
+        patch("main.get_metadata", return_value=dummy_docs),   # bypass retrieval
         patch("langchain_openai.ChatOpenAI") as mock_llm,
     ):
         # Mock the LLM response when invoked
