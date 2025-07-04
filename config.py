@@ -7,8 +7,12 @@ load_dotenv()
 
 # API Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY environment variable is required")
+
+def get_openai_api_key() -> str:
+    key = OPENAI_API_KEY or os.getenv("OPENAI_API_KEY")
+    if not key:
+        raise ValueError("OPENAI_API_KEY environment variable is required")
+    return key
 
 # Model Configuration
 MODEL_NAME = os.getenv('MODEL_NAME', 'gpt-4.1-nano-2025-04-14')
