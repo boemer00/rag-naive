@@ -85,6 +85,45 @@ A CLI flag (`--reindex`) will be added soon – track progress in `issues/5`.
 
 ---
 
+## Testing
+
+This project includes automated tests to ensure the RAG pipeline works correctly.
+
+### Running Tests
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest tests/ -v
+
+# Run only integration tests
+pytest tests/ -v -m integration
+
+# Run tests without the integration marker
+pytest tests/ -v -m "not integration"
+```
+
+### Test Structure
+
+- **`tests/test_smoke.py`** - Integration smoke test that validates the end-to-end RAG pipeline
+  - Automatically mocks OpenAI API if no `OPENAI_API_KEY` is available
+  - Verifies the pipeline can load documents, process questions, and generate responses
+  - Tests with the question "What is RAG?" and validates response quality
+
+### Continuous Integration
+
+Every push and pull request triggers automated testing via GitHub Actions:
+- ✅ Python 3.11 setup with dependency caching
+- ✅ Installation of all requirements
+- ✅ Execution of the complete test suite
+- ✅ Failure blocking for broken commits
+
+The CI pipeline works both with and without OpenAI API keys, using intelligent mocking when needed.
+
+---
+
 ## Extending
 * **Multiple PDFs** – Loop through `raw_data/` in `utils.load_source_docs`.
 * **Different splitter** – Swap `RecursiveCharacterTextSplitter` for `TokenTextSplitter`.
@@ -103,11 +142,11 @@ A CLI flag (`--reindex`) will be added soon – track progress in `issues/5`.
 
 ## Author
    Developed and maintained by **Renato Boemer**
-   
+
    • GitHub: https://github.com/boemer00
-   
+
    • LinkedIn: https://www.linkedin.com/in/renatoboemer/
-   
+
    • [![Follow](https://img.shields.io/github/followers/boemer00?label=Follow%20%40boemer00&style=social)](https://github.com/boemer00)
 
 ---
