@@ -1,21 +1,19 @@
-from pathlib import Path
 from typing import Optional
 
-from langchain.schema import BaseRetriever  # type: ignore
-from langchain_core.output_parsers import StrOutputParser  # type: ignore
-from langchain_core.runnables import Runnable, RunnablePassthrough  # type: ignore
+from langchain.schema import BaseRetriever
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
-from config import MODEL_NAME, OPENAI_API_KEY, PERSIST_DIRECTORY
-from src.indexer import build_index, load_index
-from src.loaders import load_pdf
-from src.splitters import split_text
+from config import MODEL_NAME, OPENAI_API_KEY
+from src.indexer import ensure_index_exists
+from src.utils import load_source_docs
 
 
 PROMPT_RAG: str = (
-    "You are a domain‐expert AI researcher specializing in computer science, AI, ML, NLP, and Neuroscience research papers.\n"
-    "Your task is to answer the user’s question using only the provided context.\n\n"
+    "You are a domain-expert AI researcher specializing in computer science, AI, ML, NLP, and Neuroscience research papers.\n"
+    "Your task is to answer the user's question using only the provided context.\n\n"
     "Instructions:\n"
     "1. **Answer Structure**:\n"
     "   - **Answer**: Begin with a succinct summary.\n"
@@ -56,12 +54,6 @@ def get_chain(retriever: BaseRetriever, *, model_name: Optional[str]=None, tempe
 
 def build_default_chain(*, k: int = 2) -> Runnable:
     """Ensures index exists (build from PDF if needed) and returns the default RAG chain."""
-    persist_path = Path(PERSIST_DIRECTORY)
-    if not persist_path.exists():
-        pdf_path = Path(__file__).resolve().parent.parent / 'raw_data' / 'rag_intensive_nlp_tasks.pdf'
-        docs = load_pdf(str(pdf_path))
-        chunks = split_text(docs)
-        build_index(chunks)
-    index = load_index()
+    index = ensure_index_exists(load_source_docs)
     retriever = index.as_retriever(search_type='similarity', search_kwargs={'k': k})
     return get_chain(retriever)

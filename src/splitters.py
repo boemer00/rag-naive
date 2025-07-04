@@ -1,6 +1,4 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from typing import List
-from langchain.schema import Document
 import re
 
 def split_text(docs, chunk_size: int=1000, chunk_overlap: int=200):
@@ -27,6 +25,10 @@ def split_text(docs, chunk_size: int=1000, chunk_overlap: int=200):
         lines = chunk.page_content.split('\n')
         detected_section = 'content'  # default
 
+        # Simple flag for first page (likely contains title)
+        if chunk.metadata.get('page', 999) == 0:
+            chunk.metadata['is_title_page'] = True
+
         for line in lines[:3]:  # Check first few lines
             line_clean = line.strip().lower()
             for pattern in section_patterns:
@@ -45,5 +47,6 @@ if __name__ == '__main__':
     from loaders import load_pdf
     docs = load_pdf('raw_data/rag_intensive_nlp_tasks.pdf')
     chunks = split_text(docs)
-    print(f"Total chunks: {len(chunks)}")
-    print(chunks[0].page_content[:100])
+    print(f'Total chunks: {len(chunks)}')
+    print('First chunk metadata:', chunks[0].metadata)
+    print('First chunk content:', chunks[0].page_content[:100])
