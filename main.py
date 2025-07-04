@@ -1,6 +1,6 @@
 from typing import List
 
-from config import MODEL_NAME, OPENAI_API_KEY
+from config import MODEL_NAME, get_openai_api_key
 from langchain.schema import Document
 from langchain_chroma import Chroma
 
@@ -49,7 +49,7 @@ def answer(question: str, force_reindex: bool = False) -> str:
         model=MODEL_NAME,
         temperature=0.0,
         max_tokens=512,
-        openai_api_key=OPENAI_API_KEY,
+        openai_api_key=get_openai_api_key(),
     )
 
     # Format prompt and invoke model
