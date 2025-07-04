@@ -1,16 +1,16 @@
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from config import OPENAI_API_KEY, PERSIST_DIRECTORY, EMBEDDING_MODEL
+from config import get_openai_api_key, PERSIST_DIRECTORY, EMBEDDING_MODEL
 from pathlib import Path
 from typing import Callable, List
 from langchain.schema import Document
 
 
-def _get_embedder():
-    """Get an OpenAI embedder"""
+def _get_embedder() -> OpenAIEmbeddings:
+    """Return an `OpenAIEmbeddings` instance configured with the API key."""
     return OpenAIEmbeddings(
         model=EMBEDDING_MODEL,
-        openai_api_key=OPENAI_API_KEY,
+        openai_api_key=get_openai_api_key(),
     )
 
 def ensure_index_exists(docs_loader: Callable[[], List[Document]], force: bool=False):
