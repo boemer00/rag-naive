@@ -63,8 +63,7 @@ All runtime options are controlled via environment variables (loaded automatical
 Create a `.env` file:
 ```env
 OPENAI_API_KEY=sk-...
-# Optional overrides:
-# MODEL_NAME=gpt-3.5-turbo
+# MODEL_NAME=gpt-4.1-nano-2025-04-14
 # PERSIST_DIRECTORY=my_db
 ```
 
@@ -104,8 +103,11 @@ A CLI flag (`--reindex`) will be added soon – track progress in `issues/5`.
 
 ## Author
    Developed and maintained by **Renato Boemer**
+   
    • GitHub: https://github.com/boemer00
+   
    • LinkedIn: https://www.linkedin.com/in/renatoboemer/
+   
    • [![Follow](https://img.shields.io/github/followers/boemer00?label=Follow%20%40boemer00&style=social)](https://github.com/boemer00)
 
 ---
