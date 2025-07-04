@@ -13,13 +13,19 @@ def _get_embedder() -> OpenAIEmbeddings:
         openai_api_key=get_openai_api_key(),
     )
 
-def ensure_index_exists(docs_loader: Callable[[], List[Document]], force: bool=False):
-    """Ensure a Chroma index exists on disk"""
+def ensure_index_exists(docs_loader: Callable[[], List[Document]], force: bool = False):
+    """Ensure a Chroma index exists and return it.
+
+    If the index is missing (or *force* is ``True``) we build it and **return the
+    in-memory instance** produced by :pyfunc:`build_index`, avoiding an
+    immediate reload from disk.  Otherwise we just load the existing index.
+    """
     persist_path = Path(PERSIST_DIRECTORY)
 
     if force or not persist_path.exists():
         docs = docs_loader()
-        build_index(docs)
+        return build_index(docs)  # single pass
+
     return load_index()
 
 def build_index(docs):
