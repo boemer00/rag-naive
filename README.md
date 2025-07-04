@@ -115,7 +115,7 @@ pytest tests/ -v -m "not integration"
 ### Continuous Integration
 
 Every push and pull request triggers automated testing via GitHub Actions:
-- ✅ Python 3.11 setup with dependency caching
+- ✅ Python 3.12 setup with dependency caching
 - ✅ Installation of all requirements
 - ✅ Execution of the complete test suite
 - ✅ Failure blocking for broken commits
@@ -152,4 +152,4 @@ The CI pipeline works both with and without OpenAI API keys, using intelligent m
 ---
 
 ## License
-© 2024 Renato Boemer — MIT License
+© 2025 Renato Boemer — MIT License
