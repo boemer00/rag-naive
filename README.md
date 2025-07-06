@@ -77,6 +77,7 @@ rag-naive/
 │   ├── indexer.py          # Build/load Chroma DB
 │   ├── retrieval.py        # Metadata-aware retrieval helper
 │   ├── utils.py            # Convenience loader for default PDF
+│   ├── monitoring.py       # LangSmith tracing & RAG metrics
 │   └── chain.py            # Prompt & LCEL chain factory
 ├── main.py                 # CLI entry point
 ├── config.py               # Env-driven configuration
@@ -160,7 +161,7 @@ pytest tests/ -v -m "not integration"
 ### Continuous Integration
 
 Every push and pull request triggers automated testing via GitHub Actions:
-- ✅ Python 3.11 setup with dependency caching
+- ✅ Python 3.12 setup with dependency caching
 - ✅ Installation of all requirements
 - ✅ Execution of the complete test suite
 - ✅ Failure blocking for broken commits
