@@ -13,6 +13,12 @@ pip install -r requirements.txt
 # 2. Export your OpenAI key
 export OPENAI_API_KEY=sk-...
 
+#    # (Optional) Enable LangSmith tracing – set these env vars or see the
+#    # "Monitoring & Observability" section below
+#    # LANGSMITH_TRACING=true
+#    # LANGSMITH_API_KEY=ls__...
+#    # LANGSMITH_PROJECT=rag-naive-mvp
+
 # 3. Ask a question (index builds automatically on first run)
 python main.py "What are the key findings presented in the paper?"
 ```
@@ -26,6 +32,37 @@ python main.py "What are the key findings presented in the paper?"
 * Persistent local index for offline reuse (`db/` directory)
 * Smart metadata boosting – questions about *title* or *author* are answered more reliably
 * Zero configuration beyond `OPENAI_API_KEY`
+* **Optional LangSmith monitoring** – one export away from live traces & dashboards
+
+---
+
+## Monitoring & Observability (LangSmith)
+
+Want rich traces and latency / token-cost dashboards?
+
+1. Install the extra SDK (already pinned in `requirements.txt`, but explicit here):
+
+   ```bash
+   pip install langsmith
+   ```
+
+2. Export the required variables (US region example):
+
+   ```bash
+   export LANGSMITH_TRACING=true
+   export LANGSMITH_API_KEY=ls__org_...   # or ls__proj_...
+   export LANGSMITH_PROJECT=rag-naive-mvp
+   ```
+
+   European data residency:
+
+   ```bash
+   export LANGSMITH_ENDPOINT="https://eu.api.smith.langchain.com"
+   ```
+
+3. Run the app – traces appear instantly at <https://smith.langchain.com> under your chosen project.
+
+That’s it! The `src/monitoring.py` module auto-configures everything at start-up.
 
 ---
 
@@ -59,12 +96,20 @@ All runtime options are controlled via environment variables (loaded automatical
 | `EMBEDDING_MODEL`   | `text-embedding-3-large`        | Model used to embed chunks               |
 | `PERSIST_DIRECTORY` | `db`                            | Folder to store the Chroma collection    |
 | `CHAIN_TYPE`        | `map_reduce`                    | LLM chaining strategy (future feature)   |
+| `LANGSMITH_TRACING` | `false`                         | Toggle LangSmith tracing                 |
+| `LANGSMITH_API_KEY` | —                               | Personal or project API key              |
+| `LANGSMITH_PROJECT` | `default`                       | Project name to group traces             |
+| `LANGSMITH_ENDPOINT`| `https://api.smith.langchain.com` | Override for EU/self-hosted region       |
 
 Create a `.env` file:
 ```env
 OPENAI_API_KEY=sk-...
 # MODEL_NAME=gpt-4.1-nano-2025-04-14
 # PERSIST_DIRECTORY=my_db
+# LANGSMITH_TRACING=true
+# LANGSMITH_API_KEY=ls__org_...
+# LANGSMITH_PROJECT=rag-naive-mvp
+# LANGSMITH_ENDPOINT=https://eu.api.smith.langchain.com
 ```
 
 ---
@@ -152,4 +197,4 @@ The CI pipeline works both with and without OpenAI API keys, using intelligent m
 ---
 
 ## License
-© 2024 Renato Boemer — MIT License
+© 2025 Renato Boemer - MIT License

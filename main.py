@@ -3,6 +3,7 @@ from typing import List
 from config import MODEL_NAME, get_openai_api_key
 from langchain.schema import Document
 from langchain_chroma import Chroma
+from src.monitoring import configure_langsmith, trace_run
 
 from src.chain import PROMPT_RAG
 from src.indexer import ensure_index_exists
@@ -13,7 +14,10 @@ from src.retrieval import get_metadata
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
+configure_langsmith()
 
+
+@trace_run
 def answer(question: str, force_reindex: bool = False) -> str:
     """Return an answer to the given question using the RAG pipeline.
 
