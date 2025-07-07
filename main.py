@@ -3,7 +3,7 @@ from typing import List
 from config import MODEL_NAME, get_openai_api_key
 from langchain.schema import Document
 from langchain_chroma import Chroma
-from src.monitoring import configure_langsmith, trace_run
+from src.monitoring import configure_langsmith, trace_run, evaluate_and_log
 
 from src.chain import PROMPT_RAG
 from src.indexer import ensure_index_exists
@@ -59,8 +59,12 @@ def answer(question: str, force_reindex: bool = False) -> str:
     # Format prompt and invoke model
     formatted_prompt: str = prompt.format(context=context, question=question)
     response = llm.invoke(formatted_prompt)
+    result: str = response.content
 
-    return response.content
+    # Log RAG metrics to LangSmith (sample rate can be controlled via env var)
+    evaluate_and_log(question, result, context)
+
+    return result
 
 
 if __name__ == '__main__':
