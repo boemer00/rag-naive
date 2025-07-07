@@ -1,19 +1,12 @@
-"""LangSmith monitoring utilities (scaffold).
-
-This module centralises all interactions with LangSmith for tracing
-and observability. Implementation to be provided in the next step."""
-from __future__ import annotations
-
 import os
 import warnings
 from functools import wraps
 import json
 from typing import Callable, TypeVar, Any, Optional
+import random
 
 from config import get_openai_api_key
 
-from src.indexer import ensure_index_exists  # local evaluation reuse
-from src.utils import load_source_docs
 from src.retrieval import get_metadata
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -30,13 +23,18 @@ except ImportError:  # pragma: no cover – safeguard when dependency missing
     _LANGSMITH_AVAILABLE = False
 
 # Generic type variable for decorator typings
-F = TypeVar("F", bound=Callable[..., Any])
+F = TypeVar('F', bound=Callable[..., Any])
 
 # Internal state guard to ensure idempotent configuration
 _configured: bool = False
-_client: Optional["Client"] = None  # type: ignore[name-defined]
+_client: Optional['Client'] = None  # type: ignore[name-defined]
 
-_EVAL_ENABLED = os.getenv("EVAL_RAG_METRICS", "true").lower() == "true"
+_EVAL_ENABLED = os.getenv('EVAL_RAG_METRICS', 'true').lower() == 'true'
+# Percentage of requests to evaluate (0–1). Defaults to 0.05 = 5%
+try:
+    _EVAL_SAMPLE_RATE = max(0.0, min(1.0, float(os.getenv('EVAL_SAMPLE_RATE', '0.05'))))
+except ValueError:
+    _EVAL_SAMPLE_RATE = 0.05
 
 # Attempt to import utility to access current RunTree when LangSmith v2 tracing is enabled.
 try:
@@ -49,7 +47,7 @@ except Exception:  # pragma: no cover
 # ---------------------------------------------------------------------------
 
 _GRADE_PROMPT = PromptTemplate(
-    input_variables=["question", "answer", "context"],
+    input_variables=['question', 'answer', 'context'],
     template=(
         "You are evaluating the quality of a Retrieval-Augmented Generation (RAG) response.\n"
         "Assess the following dimensions and return JSON with four float scores (0-1, 1=best).\n"
@@ -66,13 +64,18 @@ def _grade_rag(question: str, answer: str, context: str) -> dict[str, float]:
     """Call a lightweight LLM judge to produce metric scores."""
 
     llm = ChatOpenAI(
-        model=os.getenv("RAG_EVAL_MODEL", "gpt-3.5-turbo-0125"),
+        model=os.getenv('RAG_EVAL_MODEL', 'gpt-4.1-nano-2025-04-14'),
         temperature=0.0,
         max_tokens=256,
         openai_api_key=get_openai_api_key(),
     )
 
-    prompt = _GRADE_PROMPT.format(question=question, answer=answer, context=context)
+    prompt = _GRADE_PROMPT.format(
+        question=question,
+        answer=answer,
+        context=context,
+    )
+
     try:
         resp = llm.invoke(prompt)
         parsed = json.loads(resp.content)
@@ -80,14 +83,14 @@ def _grade_rag(question: str, answer: str, context: str) -> dict[str, float]:
         return {
             k: max(0.0, min(1.0, float(parsed.get(k, 0))))
             for k in (
-                "faithfulness",
-                "answer_relevance",
-                "context_relevance",
-                "context_recall",
+                'faithfulness',
+                'answer_relevance',
+                'context_relevance',
+                'context_recall',
             )
         }
     except Exception as exc:
-        warnings.warn(f"RAG metric grading failed: {exc}")
+        warnings.warn(f'RAG metric grading failed: {exc}')
         return {}
 
 
@@ -99,9 +102,9 @@ def _grade_rag(question: str, answer: str, context: str) -> dict[str, float]:
 def configure_langsmith(project_name: Optional[str] = None) -> None:
     """Configure LangSmith tracing.
 
-    This helper is idempotent – calling it multiple times is safe.
-    If the LangSmith SDK is not available (e.g. in open-source clones of this
-    repo), the function becomes a no-op and prints a gentle warning.
+    This helper is idempotent - calling it multiple times is safe.
+    If the LangSmith SDK is not available, then the function becomes
+    a no-op and prints a warning.
 
     Parameters
     ----------
@@ -124,19 +127,19 @@ def configure_langsmith(project_name: Optional[str] = None) -> None:
 
     # Ensure minimal env vars are present to activate tracing.
     if project_name:
-        os.environ.setdefault("LANGSMITH_PROJECT", project_name)
+        os.environ.setdefault('LANGSMITH_PROJECT', project_name)
 
-    os.environ.setdefault("LANGSMITH_TRACING", "true")
+    os.environ.setdefault('LANGSMITH_TRACING', 'true')
 
     # Activate new v2 tracing so we can access the current RunTree inside
     # the decorated function (needed to attach feedback programmatically).
-    os.environ.setdefault("LANGSMITH_TRACING_V2", "true")
+    os.environ.setdefault('LANGSMITH_TRACING_V2', 'true')
 
     # Optional: provide default public endpoint if not specified.
-    os.environ.setdefault("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+    os.environ.setdefault('LANGSMITH_ENDPOINT', 'https://api.smith.langchain.com')
 
     # Check for critical vars. If missing we don't raise – we disable tracing.
-    required = ["LANGSMITH_API_KEY"]
+    required = ['LANGSMITH_API_KEY']
     missing = [var for var in required if not os.getenv(var)]
 
     if missing:
@@ -145,12 +148,12 @@ def configure_langsmith(project_name: Optional[str] = None) -> None:
             ". Tracing is disabled until they are provided.",
             RuntimeWarning,
         )
-        os.environ["LANGSMITH_TRACING"] = "false"
+        os.environ['LANGSMITH_TRACING'] = 'false'
 
     _configured = True
 
 
-def _get_client() -> Optional["Client"]:  # type: ignore[name-defined]
+def _get_client() -> Optional['Client']:  # type: ignore[name-defined]
     """Lazily create and cache a LangSmith Client instance (if available)."""
     global _client
 
@@ -185,7 +188,7 @@ def trace_run(fn: F) -> F:  # type: ignore[override]
         # Optional inline evaluation for RAG metrics
         if _EVAL_ENABLED and _LANGSMITH_AVAILABLE:
             try:
-                question = args[0] if args else kwargs.get("question", "")
+                question = args[0] if args else kwargs.get('question', '')
                 # Recompute context using retrieval helper (cheap)
                 from src.indexer import ensure_index_exists  # local import to avoid cycles
                 from src.utils import load_source_docs
@@ -195,7 +198,11 @@ def trace_run(fn: F) -> F:  # type: ignore[override]
                 docs = get_metadata(index, question, k=6)
                 context_str = "\n\n".join(d.page_content for d in docs)
 
-                scores = _grade_rag(str(question), str(result), context_str)
+                # Sampled evaluation to control cost/latency
+                if random.random() < _EVAL_SAMPLE_RATE:
+                    scores = _grade_rag(str(question), str(result), context_str)
+                else:
+                    scores = {}
 
                 # Attach scores as Feedback entries to the *current* run.
                 if scores and _get_current_run_tree is not None:
@@ -207,7 +214,7 @@ def trace_run(fn: F) -> F:  # type: ignore[override]
                             for key, val in scores.items():
                                 cl.create_feedback(run_id, key=key, score=val)
             except Exception as exc:
-                warnings.warn(f"Inline RAG evaluation failed: {exc}")
+                warnings.warn(f'Inline RAG evaluation failed: {exc}')
 
         return result
 
@@ -215,4 +222,4 @@ def trace_run(fn: F) -> F:  # type: ignore[override]
 
 
 # Expose the client as a module-level attribute for convenience.
-client: Optional["Client"] = _get_client()  # type: ignore[name-defined]
+client: Optional['Client'] = _get_client()  # type: ignore[name-defined]
