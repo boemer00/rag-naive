@@ -40,6 +40,47 @@ def split_text(docs, chunk_size: int=1000, chunk_overlap: int=200):
 
         # Add section metadata
         chunk.metadata['section'] = detected_section
+        
+        # Add longevity-specific metadata based on content analysis
+        content_lower = chunk.page_content.lower()
+        
+        # Detect research type keywords
+        if any(term in content_lower for term in ['meta-analysis', 'systematic review']):
+            chunk.metadata['study_type'] = 'meta-analysis'
+        elif any(term in content_lower for term in ['randomized', 'clinical trial', 'rct']):
+            chunk.metadata['study_type'] = 'rct'
+        elif any(term in content_lower for term in ['cohort', 'longitudinal', 'observational']):
+            chunk.metadata['study_type'] = 'observational'
+        else:
+            chunk.metadata['study_type'] = 'general'
+        
+        # Detect longevity topics
+        topics = []
+        if any(term in content_lower for term in ['cardiovascular', 'heart', 'blood pressure', 'cardiac']):
+            topics.append('cardiovascular')
+        if any(term in content_lower for term in ['sleep', 'circadian', 'insomnia']):
+            topics.append('sleep')
+        if any(term in content_lower for term in ['exercise', 'physical activity', 'fitness', 'training']):
+            topics.append('exercise')
+        if any(term in content_lower for term in ['nutrition', 'diet', 'food', 'caloric restriction']):
+            topics.append('nutrition')
+        if any(term in content_lower for term in ['aging', 'longevity', 'lifespan', 'mortality']):
+            topics.append('longevity')
+        
+        chunk.metadata['topics'] = ','.join(topics) if topics else 'general'
+        
+        # Detect biomarkers mentioned
+        biomarkers = []
+        if any(term in content_lower for term in ['heart rate', 'hr', 'pulse']):
+            biomarkers.append('heart_rate')
+        if any(term in content_lower for term in ['blood pressure', 'bp', 'hypertension']):
+            biomarkers.append('blood_pressure')
+        if any(term in content_lower for term in ['vo2', 'oxygen consumption', 'aerobic capacity']):
+            biomarkers.append('vo2_max')
+        if any(term in content_lower for term in ['sleep quality', 'sleep duration', 'rem']):
+            biomarkers.append('sleep_metrics')
+        
+        chunk.metadata['biomarkers'] = ','.join(biomarkers) if biomarkers else ''
 
     return chunks
 
