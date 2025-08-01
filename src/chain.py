@@ -6,7 +6,7 @@ from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
-from config import get_config, get_openai_api_key
+from config import get_config
 from src.indexer import ensure_index_exists
 from src.utils import load_source_docs
 

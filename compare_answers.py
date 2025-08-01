@@ -5,7 +5,6 @@ Shows the value of grounding LLM responses in research papers
 """
 
 from src.utils import load_source_docs
-from src.retrieval import get_metadata
 from src.indexer import build_index
 from unittest.mock import patch
 import numpy as np
@@ -28,7 +27,7 @@ def get_relevant_context(question):
     
     # Build index with mock embeddings (to avoid API calls)
     with patch('src.indexer._get_embedder', return_value=mock_openai_embeddings()):
-        index = build_index(chunks)
+        build_index(chunks)
     
     # Simulate retrieval by finding most relevant chunks
     question_lower = question.lower()
@@ -74,7 +73,8 @@ def get_relevant_context(question):
 
 def simulate_rag_answer(question, context_chunks):
     """Simulate what a RAG-enhanced answer would look like"""
-    context = "\n\n".join(chunk.page_content for chunk in context_chunks)
+    # Context preparation for LLM (simulated)
+    "\n\n".join(chunk.page_content for chunk in context_chunks)
     
     # This simulates what the LLM would generate with the retrieved context
     return f"""Based on the provided longevity research papers, exercise has a well-documented positive relationship with longevity and healthy aging:
@@ -160,7 +160,7 @@ def compare_answers():
     print("  ⚠️  Disclaimers about currency")
     print("  ⚠️  No source attribution")
     
-    print(f"\n🏆 WINNER: RAG-Enhanced Answer")
+    print("\n🏆 WINNER: RAG-Enhanced Answer")
     print("   Provides specific, research-backed insights vs general knowledge")
 
 if __name__ == "__main__":

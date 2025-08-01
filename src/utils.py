@@ -3,7 +3,6 @@ from typing import List
 from langchain.schema import Document
 from src.loaders import load_pdf
 from src.splitters import split_text
-from config import SAMPLE_PDF
 
 
 def load_source_docs(pdf_path: Path | str | None = None) -> List[Document]:

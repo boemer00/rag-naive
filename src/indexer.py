@@ -1,6 +1,6 @@
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from config import get_config, get_openai_api_key
+from config import get_config
 from pathlib import Path
 from typing import Callable, List
 from langchain.schema import Document

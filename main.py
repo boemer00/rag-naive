@@ -1,7 +1,4 @@
-from typing import List
-
-from config import get_config, get_openai_api_key
-from langchain.schema import Document
+from config import get_config
 from langchain_chroma import Chroma
 from src.monitoring import configure_langsmith, trace_run, evaluate_and_log
 
