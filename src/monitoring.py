@@ -10,7 +10,8 @@ try:
     from langsmith.run_helpers import get_current_run_tree
     LANGSMITH_AVAILABLE = True
 except ImportError:
-    traceable = lambda fn: fn  # no-op decorator
+    def traceable(fn):  # no-op decorator
+        return fn
     Client = None
     get_current_run_tree = None
     LANGSMITH_AVAILABLE = False
