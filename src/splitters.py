@@ -1,11 +1,13 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import re
+from config import get_config
 
-def split_text(docs, chunk_size: int=1000, chunk_overlap: int=200):
+def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
+    config = get_config()
     splitter = RecursiveCharacterTextSplitter(
         separators=['\n\n', '\n', ' '],
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
+        chunk_size=chunk_size if chunk_size is not None else config.chunk_size,
+        chunk_overlap=chunk_overlap if chunk_overlap is not None else config.chunk_overlap,
     )
     chunks = splitter.split_documents(docs)
 

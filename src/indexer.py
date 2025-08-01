@@ -1,6 +1,6 @@
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from config import get_openai_api_key, PERSIST_DIRECTORY, EMBEDDING_MODEL
+from config import get_config, get_openai_api_key
 from pathlib import Path
 from typing import Callable, List
 from langchain.schema import Document
@@ -8,9 +8,10 @@ from langchain.schema import Document
 
 def _get_embedder() -> OpenAIEmbeddings:
     """Return an `OpenAIEmbeddings` instance configured with the API key."""
+    config = get_config()
     return OpenAIEmbeddings(
-        model=EMBEDDING_MODEL,
-        openai_api_key=get_openai_api_key(),
+        model=config.embedding_model,
+        openai_api_key=config.openai_api_key,
     )
 
 def ensure_index_exists(docs_loader: Callable[[], List[Document]], force: bool=False):
@@ -20,7 +21,8 @@ def ensure_index_exists(docs_loader: Callable[[], List[Document]], force: bool=F
     produced by :pyfunc:`build_index`, avoiding an immediate reload from disk.
     Otherwise, we just load the existing index.
     """
-    persist_path = Path(PERSIST_DIRECTORY)
+    config = get_config()
+    persist_path = Path(config.persist_directory)
 
     if force or not persist_path.exists():
         docs = docs_loader()
@@ -29,19 +31,21 @@ def ensure_index_exists(docs_loader: Callable[[], List[Document]], force: bool=F
 
 def build_index(docs):
     """Build a Chroma index from a list of documents"""
+    config = get_config()
     embedder = _get_embedder()
     db = Chroma.from_documents(
         docs,
         embedder,
-        persist_directory=PERSIST_DIRECTORY
+        persist_directory=config.persist_directory
     )
     return db
 
 def load_index():
     """Load a Chroma index from disk"""
+    config = get_config()
     embedder = _get_embedder()
     return Chroma(
-        persist_directory=PERSIST_DIRECTORY,
+        persist_directory=config.persist_directory,
         embedding_function=embedder,
     )
 

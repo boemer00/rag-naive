@@ -1,6 +1,6 @@
 from typing import List
 
-from config import MODEL_NAME, get_openai_api_key
+from config import get_config, get_openai_api_key
 from langchain.schema import Document
 from langchain_chroma import Chroma
 from src.monitoring import configure_langsmith, trace_run, evaluate_and_log
@@ -33,11 +33,13 @@ def answer(question: str, force_reindex: bool = False) -> str:
     str
         LLM-generated answer.
     """
+    config = get_config()
+    
     # Ensure the vector index exists (or rebuild if forced)
     index: Chroma = ensure_index_exists(load_source_docs, force_reindex)
 
     # Retrieve relevant documents, with metadata boosting for certain question types
-    docs = get_metadata(index, question, k=6)
+    docs = get_metadata(index, question, k=config.retrieval_k)
 
     # Build a context string from retrieved docs
     context: str = "\n\n".join(doc.page_content for doc in docs)
@@ -50,10 +52,10 @@ def answer(question: str, force_reindex: bool = False) -> str:
 
     # Instantiate LLM
     llm = ChatOpenAI(
-        model=MODEL_NAME,
-        temperature=0.0,
-        max_tokens=512,
-        openai_api_key=get_openai_api_key(),
+        model=config.model_name,
+        temperature=config.temperature,
+        max_tokens=config.max_tokens,
+        openai_api_key=config.openai_api_key,
     )
 
     # Format prompt and invoke model
