@@ -33,19 +33,18 @@ def evaluate_rag(question: str, answer: str, context: str) -> dict[str, float]:
         return {}
 
     # Early exit if not sampled
-    sample_rate = float(os.getenv("EVAL_SAMPLE_RATE", "0.05"))
-    if random.random() > sample_rate:
+    from config import get_config
+    config = get_config()
+    if random.random() > config.eval_sample_rate:
         return {}
 
     # Only import heavy dependencies if we're actually evaluating
     from langchain_openai import ChatOpenAI
-    from config import get_openai_api_key
-
     llm = ChatOpenAI(
-        model=os.getenv("RAG_EVAL_MODEL", "gpt-4o-mini"),
+        model=config.eval_model,
         temperature=0,
         max_tokens=200,
-        openai_api_key=get_openai_api_key()
+        openai_api_key=config.openai_api_key
     )
 
     prompt = f"""Evaluate this RAG system response on four metrics (0.0-1.0 scale, 1.0 = perfect):
