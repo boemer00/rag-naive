@@ -1,7 +1,8 @@
-# RAG-Naive
+# RAG-Research
 
-A minimal, self-contained Retrieval-Augmented Generation (RAG) pipeline built with **LangChain**, **OpenAI**, and **Chroma**.
-It ingests multiple research papers, stores chunk embeddings locally with rich metadata, and answers questions from the command line in one step.
+A Retrieval-Augmented Generation (RAG) pipeline built with **LangChain**, **OpenAI**, and **Chroma**. It ingests multiple research papers about longevity, stores chunk embeddings locally with rich metadata, and answers questions from the command line in one step.
+
+The end goal is for users to integrate their wearable device health data (e.g. Garmin watch, Apple Watch, Oura ring, and Fitbit), ask questions and get personalized answers based on both thei data and updated scientific research on Longevity. Every answer should have longevity in mind.
 
 ---
 
@@ -75,7 +76,7 @@ That’s it! The `src/monitoring.py` module auto-configures everything at start-
 rag-naive/
 ├── raw_data/               # Source documents (multiple PDFs supported)
 │   ├── Longevity leap-mind the healthspan gap.pdf
-│   ├── Benonisdottir_et_al_2024_Genetics_of_female.pdf  
+│   ├── Benonisdottir_et_al_2024_Genetics_of_female.pdf
 │   ├── Implausibility of radical life extension in humans...pdf
 │   └── Towards AI-driven longevity research an overview.pdf
 ├── src/
@@ -209,7 +210,7 @@ python compare_answers.py
 ### Advanced Filtering
 The metadata enables sophisticated retrieval patterns:
 - **Topic filtering**: `cardiovascular` queries find 27 relevant chunks
-- **Evidence filtering**: `meta-analysis` queries prioritize 17 high-quality chunks  
+- **Evidence filtering**: `meta-analysis` queries prioritize 17 high-quality chunks
 - **Biomarker filtering**: `heart_rate` queries target 125 relevant chunks
 
 ---
