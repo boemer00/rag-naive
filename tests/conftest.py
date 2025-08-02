@@ -11,6 +11,9 @@ import pytest
 
 from config import get_config
 
+# Import test configuration
+pytest_plugins = ["tests.test_config"]
+
 
 @pytest.fixture(scope="session")
 def test_config():
@@ -40,3 +43,11 @@ def isolated_test_env(temp_db_dir, monkeypatch):
     yield test_db
     if os.path.exists(test_db):
         os.remove(test_db)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_langsmith():
+    """Disable LangSmith during testing to avoid authentication issues."""
+    os.environ["LANGSMITH_TRACING"] = "false"
+    # Remove any existing LangSmith keys during testing
+    os.environ.pop("LANGSMITH_API_KEY", None)
