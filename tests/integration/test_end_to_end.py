@@ -34,7 +34,7 @@ class TestEndToEndRAG:
         """Test PMC document loading with mocked API calls."""
         # Mock that papers are not already stored
         mock_stored.return_value = False
-        
+
         # Mock PMC API responses
         mock_search.return_value = [
             {
