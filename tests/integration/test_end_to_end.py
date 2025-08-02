@@ -61,8 +61,12 @@ class TestEndToEndRAG:
         assert pmc_doc.metadata.get('pmc_id') == 'PMC123456'
 
     @pytest.mark.integration
-    def test_vector_index_creation(self, mock_openai_components):
+    @patch('src.indexer._get_embedder')
+    def test_vector_index_creation(self, mock_embedder, mock_openai_components):
         """Test that vector index can be created from documents."""
+        # Mock the embedder function to return our mock embeddings
+        mock_embedder.return_value = mock_openai_components['embeddings']
+
         # Load a small set of documents
         docs = load_source_docs()[:3]  # Limit for speed
 
@@ -99,9 +103,15 @@ class TestEndToEndRAG:
             pytest.skip(f"End-to-end test skipped due to: {e}")
 
     @pytest.mark.integration
-    def test_end_to_end_question_answering_mocked(self, mock_openai_components):
+    @patch('src.indexer._get_embedder')
+    @patch('main.ChatOpenAI')
+    def test_end_to_end_question_answering_mocked(self, mock_chat, mock_embedder, mock_openai_components):
         """Test complete question answering pipeline with mocked API."""
         from main import answer
+
+        # Mock the embedder and chat model
+        mock_embedder.return_value = mock_openai_components['embeddings']
+        mock_chat.return_value = mock_openai_components['chat']
 
         # This version runs in CI without API costs
         question = "What factors influence human longevity?"

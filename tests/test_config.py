@@ -17,11 +17,11 @@ class MockOpenAIEmbeddings:
 
     def embed_documents(self, texts):
         """Return mock embeddings for documents."""
-        return [[0.1 + i * 0.01] * 1536 for i, _ in enumerate(texts)]
+        return [[0.1 + i * 0.01] * 3072 for i, _ in enumerate(texts)]
 
     def embed_query(self, text):
         """Return mock embedding for query."""
-        return [0.1] * 1536
+        return [0.1] * 3072
 
 
 class MockChatOpenAI:
