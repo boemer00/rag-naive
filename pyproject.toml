@@ -41,9 +41,10 @@ addopts = "-ra -q --strict-markers --tb=short"
 testpaths = ["tests"]
 markers = [
     "unit: Unit tests",
-    "integration: Integration tests",
+    "integration: Integration tests", 
     "performance: Performance tests",
     "slow: Slow tests (deselect with '-m \"not slow\"')",
+    "requires_api: Tests that require real API keys (expensive)",
 ]
 timeout = 300  # 5 minute default timeout
 filterwarnings = [
