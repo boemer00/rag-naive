@@ -1,15 +1,13 @@
-from typing import Optional
 
+from langchain.prompts import PromptTemplate
 from langchain.schema import BaseRetriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnablePassthrough
-from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
 from config import get_config
 from src.indexer import ensure_index_exists
 from src.utils import load_source_docs
-
 
 PROMPT_RAG: str = (
     "You are a domain-expert AI researcher specializing in computer science, AI, ML, NLP, and Neuroscience research papers.\n"
@@ -32,10 +30,10 @@ PROMPT_RAG: str = (
 )
 
 
-def get_chain(retriever: BaseRetriever, *, model_name: Optional[str]=None, temperature: Optional[float]=None, max_tokens: Optional[int]=None) -> Runnable:
+def get_chain(retriever: BaseRetriever, *, model_name: str | None=None, temperature: float | None=None, max_tokens: int | None=None) -> Runnable:
     """Builds a RAG chain: Retriever → Prompt → LLM → String parser."""
     config = get_config()
-    
+
     prompt = PromptTemplate(
         input_variables=['context', 'question'],
         template=PROMPT_RAG,
@@ -54,12 +52,12 @@ def get_chain(retriever: BaseRetriever, *, model_name: Optional[str]=None, tempe
     )
 
 
-def build_default_chain(*, k: Optional[int] = None) -> Runnable:
+def build_default_chain(*, k: int | None = None) -> Runnable:
     """Ensures index exists (build from PDF if needed) and returns the default RAG chain."""
     config = get_config()
     index = ensure_index_exists(load_source_docs)
     retriever = index.as_retriever(
-        search_type='similarity', 
+        search_type='similarity',
         search_kwargs={'k': k if k is not None else config.retrieval_k}
     )
     return get_chain(retriever)

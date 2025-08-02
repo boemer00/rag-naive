@@ -1,7 +1,7 @@
 import os
-from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -10,38 +10,38 @@ load_dotenv()
 @dataclass
 class RAGConfig:
     """Centralized configuration for RAG pipeline with validation."""
-    
+
     # API Configuration
     openai_api_key: str
-    
+
     # Model Configuration
     model_name: str = 'gpt-4.1-nano-2025-04-14'
     embedding_model: str = 'text-embedding-3-large'
-    
+
     # Retrieval Configuration
     chunk_size: int = 1000
     chunk_overlap: int = 200
     retrieval_k: int = 6
-    
+
     # Chain Configuration
     chain_type: str = 'map_reduce'
     temperature: float = 0.0
     max_tokens: int = 512
-    
+
     # Storage Configuration
     persist_directory: str = 'db'
-    
+
     # Evaluation Configuration
     eval_sample_rate: float = 0.05
     eval_model: str = 'gpt-4o-mini'
-    
+
     @classmethod
     def from_env(cls) -> 'RAGConfig':
         """Create config from environment variables with validation."""
         openai_key = os.getenv('OPENAI_API_KEY')
         if not openai_key:
             raise ValueError("OPENAI_API_KEY environment variable is required")
-        
+
         return cls(
             openai_api_key=openai_key,
             model_name=os.getenv('MODEL_NAME', 'gpt-4.1-nano-2025-04-14'),
@@ -58,7 +58,7 @@ class RAGConfig:
         )
 
 # Global config instance
-_config: Optional[RAGConfig] = None
+_config: RAGConfig | None = None
 
 def get_config() -> RAGConfig:
     """Get the global configuration instance."""

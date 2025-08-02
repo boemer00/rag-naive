@@ -1,15 +1,13 @@
-from config import get_config
+from langchain.prompts import PromptTemplate
 from langchain_chroma import Chroma
-from src.monitoring import configure_langsmith, trace_run, evaluate_and_log
+from langchain_openai import ChatOpenAI
 
+from config import get_config
 from src.chain import PROMPT_RAG
 from src.indexer import ensure_index_exists
-
-from src.utils import load_source_docs
+from src.monitoring import configure_langsmith, evaluate_and_log, trace_run
 from src.retrieval import get_metadata
-
-from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from src.utils import load_source_docs
 
 configure_langsmith()
 
@@ -31,7 +29,7 @@ def answer(question: str, force_reindex: bool = False) -> str:
         LLM-generated answer.
     """
     config = get_config()
-    
+
     # Ensure the vector index exists (or rebuild if forced)
     index: Chroma = ensure_index_exists(load_source_docs, force_reindex)
 

@@ -4,9 +4,10 @@ Inspect the longevity papers database.
 Shows statistics and sample papers from the SQLite database.
 """
 
-from src.sources.paper_tracker import PaperTracker
 import argparse
 import json
+
+from src.sources.paper_tracker import PaperTracker
 
 
 def main():
@@ -16,19 +17,19 @@ def main():
     parser.add_argument('--unprocessed', action='store_true',
                        help='Show only unprocessed papers')
     args = parser.parse_args()
-    
+
     tracker = PaperTracker()
-    
+
     print("=" * 60)
     print("Longevity Papers Database Inspector")
     print("=" * 60)
-    
+
     # Show statistics
     stats = tracker.get_stats()
     print("\nDatabase Statistics:")
     for key, value in stats.items():
         print(f"  {key.replace('_', ' ').title()}: {value}")
-    
+
     # Show sample papers
     if args.unprocessed:
         papers = tracker.get_unprocessed_papers(limit=args.sample)
@@ -41,15 +42,15 @@ def main():
             columns = [desc[0] for desc in cursor.description]
             papers = []
             for row in cursor.fetchall():
-                paper = dict(zip(columns, row))
+                paper = dict(zip(columns, row, strict=False))
                 if paper['authors']:
                     paper['authors'] = json.loads(paper['authors'])
                 if paper['keywords']:
                     paper['keywords'] = json.loads(paper['keywords'])
                 papers.append(paper)
-        
+
         print(f"\nSample Papers ({len(papers)}):")
-    
+
     for i, paper in enumerate(papers, 1):
         print(f"\n{i}. {paper['title'][:80]}{'...' if len(paper['title']) > 80 else ''}")
         # Handle authors field safely
@@ -71,7 +72,7 @@ def main():
         print(f"   Processed: {'✅' if paper['processed'] else '❌'}")
         if paper['abstract']:
             print(f"   Abstract: {paper['abstract'][:100]}{'...' if len(paper['abstract']) > 100 else ''}")
-    
+
     if not papers:
         print("\nNo papers found in database. Run fetch_longevity_papers.py first.")
 

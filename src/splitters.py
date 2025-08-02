@@ -1,6 +1,9 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 import re
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
 from config import get_config
+
 
 def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
     config = get_config()
@@ -42,10 +45,10 @@ def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
 
         # Add section metadata
         chunk.metadata['section'] = detected_section
-        
+
         # Add longevity-specific metadata based on content analysis
         content_lower = chunk.page_content.lower()
-        
+
         # Detect research type keywords
         if any(term in content_lower for term in ['meta-analysis', 'systematic review']):
             chunk.metadata['study_type'] = 'meta-analysis'
@@ -55,7 +58,7 @@ def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
             chunk.metadata['study_type'] = 'observational'
         else:
             chunk.metadata['study_type'] = 'general'
-        
+
         # Detect longevity topics
         topics = []
         if any(term in content_lower for term in ['cardiovascular', 'heart', 'blood pressure', 'cardiac']):
@@ -68,9 +71,9 @@ def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
             topics.append('nutrition')
         if any(term in content_lower for term in ['aging', 'longevity', 'lifespan', 'mortality']):
             topics.append('longevity')
-        
+
         chunk.metadata['topics'] = ','.join(topics) if topics else 'general'
-        
+
         # Detect biomarkers mentioned
         biomarkers = []
         if any(term in content_lower for term in ['heart rate', 'hr', 'pulse']):
@@ -81,7 +84,7 @@ def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
             biomarkers.append('vo2_max')
         if any(term in content_lower for term in ['sleep quality', 'sleep duration', 'rem']):
             biomarkers.append('sleep_metrics')
-        
+
         chunk.metadata['biomarkers'] = ','.join(biomarkers) if biomarkers else ''
 
     return chunks

@@ -1,12 +1,13 @@
-import os
 import json
+import os
 import random
 import warnings
-from typing import Optional, Callable, Any
+from collections.abc import Callable
+from typing import Any
 
 # Graceful LangSmith import
 try:
-    from langsmith import traceable, Client
+    from langsmith import Client, traceable
     from langsmith.run_helpers import get_current_run_tree
     LANGSMITH_AVAILABLE = True
 except ImportError:
@@ -17,7 +18,7 @@ except ImportError:
     LANGSMITH_AVAILABLE = False
 
 
-def configure_langsmith(project_name: Optional[str] = None) -> None:
+def configure_langsmith(project_name: str | None = None) -> None:
     """Setup LangSmith if available."""
     if not LANGSMITH_AVAILABLE:
         warnings.warn("LangSmith not installed - tracing disabled")
