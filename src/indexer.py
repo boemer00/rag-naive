@@ -1,9 +1,11 @@
-from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
-from config import get_config
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, List
+
 from langchain.schema import Document
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+from config import get_config
 
 
 def _get_embedder() -> OpenAIEmbeddings:
@@ -14,7 +16,7 @@ def _get_embedder() -> OpenAIEmbeddings:
         openai_api_key=config.openai_api_key,
     )
 
-def ensure_index_exists(docs_loader: Callable[[], List[Document]], force: bool=False):
+def ensure_index_exists(docs_loader: Callable[[], list[Document]], force: bool=False):
     """Ensure a Chroma index exists and return it.
 
     If the index is missing we build it and **return the in-memory instance**

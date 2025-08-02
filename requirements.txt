@@ -7,3 +7,5 @@ langchain_chroma==0.2.4
 langchain_openai==0.3.27
 langchain-text-splitters==0.3.8
 langsmith>=0.1.21
+requests>=2.31.0
+lxml>=4.9.0
