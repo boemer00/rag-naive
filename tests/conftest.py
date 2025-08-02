@@ -3,11 +3,12 @@ Pytest configuration and fixtures for RAG system testing.
 Following AI/MLOps best practices for model testing.
 """
 
-import pytest
 import os
-import tempfile
 import shutil
-from pathlib import Path
+import tempfile
+
+import pytest
+
 from config import get_config
 
 
@@ -17,7 +18,7 @@ def test_config():
     return get_config()
 
 
-@pytest.fixture(scope="session") 
+@pytest.fixture(scope="session")
 def temp_db_dir():
     """Create temporary directory for test databases."""
     temp_dir = tempfile.mkdtemp(prefix="rag_test_")
