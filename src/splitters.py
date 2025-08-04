@@ -90,7 +90,7 @@ def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
     return chunks
 
 if __name__ == '__main__':
-    from loaders import load_pdf
+    from src.loaders import load_pdf
     docs = load_pdf('raw_data/rag_intensive_nlp_tasks.pdf')
     chunks = split_text(docs)
     print(f'Total chunks: {len(chunks)}')

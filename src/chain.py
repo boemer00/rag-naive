@@ -6,8 +6,6 @@ from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain_openai import ChatOpenAI
 
 from config import get_config
-from src.indexer import ensure_index_exists
-from src.utils import load_source_docs
 
 PROMPT_RAG: str = (
     "You are a domain-expert AI researcher specializing in computer science, AI, ML, NLP, and Neuroscience research papers.\n"
@@ -52,12 +50,3 @@ def get_chain(retriever: BaseRetriever, *, model_name: str | None=None, temperat
     )
 
 
-def build_default_chain(*, k: int | None = None) -> Runnable:
-    """Ensures index exists (build from PDF if needed) and returns the default RAG chain."""
-    config = get_config()
-    index = ensure_index_exists(load_source_docs)
-    retriever = index.as_retriever(
-        search_type='similarity',
-        search_kwargs={'k': k if k is not None else config.retrieval_k}
-    )
-    return get_chain(retriever)
