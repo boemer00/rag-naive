@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass
-from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -23,8 +22,7 @@ class RAGConfig:
     chunk_overlap: int = 200
     retrieval_k: int = 6
 
-    # Chain Configuration
-    chain_type: str = 'map_reduce'
+    # LLM Configuration
     temperature: float = 0.0
     max_tokens: int = 512
 
@@ -49,7 +47,6 @@ class RAGConfig:
             chunk_size=int(os.getenv('CHUNK_SIZE', '1000')),
             chunk_overlap=int(os.getenv('CHUNK_OVERLAP', '200')),
             retrieval_k=int(os.getenv('RETRIEVAL_K', '6')),
-            chain_type=os.getenv('CHAIN_TYPE', 'map_reduce'),
             temperature=float(os.getenv('TEMPERATURE', '0.0')),
             max_tokens=int(os.getenv('MAX_TOKENS', '512')),
             persist_directory=os.getenv('PERSIST_DIRECTORY', 'db'),
@@ -67,16 +64,4 @@ def get_config() -> RAGConfig:
         _config = RAGConfig.from_env()
     return _config
 
-# Legacy compatibility functions
-def get_openai_api_key() -> str:
-    """Legacy function for backward compatibility."""
-    return get_config().openai_api_key
 
-# Legacy constants for backward compatibility
-MODEL_NAME = os.getenv('MODEL_NAME', 'gpt-4.1-nano-2025-04-14')
-EMBEDDING_MODEL = os.getenv('EMBEDDING_MODEL', 'text-embedding-3-large')
-CHAIN_TYPE = os.getenv('CHAIN_TYPE', 'map_reduce')
-PERSIST_DIRECTORY = os.getenv('PERSIST_DIRECTORY', 'db')
-
-# File Paths
-SAMPLE_PDF = Path(__file__).resolve().parent.parent / 'raw_data' / 'rag_intensive_nlp_tasks.pdf'
