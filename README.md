@@ -157,7 +157,7 @@ This project includes automated tests to ensure the RAG pipeline works correctly
 
 ```bash
 # Install development dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements.txt -r requirements-dev.txt
 
 # Run all tests
 pytest tests/ -v

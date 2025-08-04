@@ -6,8 +6,7 @@ help:  ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 install:  ## Install dependencies
-	pip install -r requirements.txt
-	pip install -r requirements-dev.txt
+	pip install -r requirements.txt -r requirements-dev.txt
 
 test: test-unit test-integration  ## Run all tests except performance
 
