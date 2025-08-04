@@ -73,4 +73,7 @@ def load_source_docs(pdf_path: Path | str | None = None, pmc_query: str | None =
     total_pmc = len([doc for doc in all_documents if doc.metadata.get('source_type') == 'pmc'])
 
     print(f"Total documents loaded: {len(all_documents)} chunks ({total_pmc} PMC papers, {total_papers} local PDFs)")
+
     return all_documents
+
+

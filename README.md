@@ -147,6 +147,12 @@ OPENAI_API_KEY=sk-...
 Delete the folder specified by `PERSIST_DIRECTORY` (default `db/`) and re-run `main.py`.
 A CLI flag (`--reindex`) will be added soon – track progress in `issues/5`.
 
+### Performance Optimization
+The system uses **lazy loading** for optimal performance:
+- **Smart loading:** Documents are only processed when the vector index needs building/rebuilding
+- **Fast startup:** Existing index loads instantly without document processing
+- **Force rebuild:** Delete the `db/` directory to trigger full document reprocessing
+
 ---
 
 ## Testing
@@ -157,7 +163,7 @@ This project includes automated tests to ensure the RAG pipeline works correctly
 
 ```bash
 # Install development dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements.txt -r requirements-dev.txt
 
 # Run all tests
 pytest tests/ -v
