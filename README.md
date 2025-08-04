@@ -147,6 +147,12 @@ OPENAI_API_KEY=sk-...
 Delete the folder specified by `PERSIST_DIRECTORY` (default `db/`) and re-run `main.py`.
 A CLI flag (`--reindex`) will be added soon – track progress in `issues/5`.
 
+### Performance Optimization
+The system uses **lazy loading** for optimal performance:
+- **Smart loading:** Documents are only processed when the vector index needs building/rebuilding
+- **Fast startup:** Existing index loads instantly without document processing
+- **Force rebuild:** Delete the `db/` directory to trigger full document reprocessing
+
 ---
 
 ## Testing
