@@ -24,7 +24,7 @@ def ensure_index_exists(docs_loader: Callable[[], list[Document]], force: bool=F
     Otherwise, we just load the existing index.
     """
     from src.index_cache import get_index_cache
-    
+
     config = get_config()
     persist_path = Path(config.persist_directory)
     index_cache = get_index_cache()
@@ -33,18 +33,18 @@ def ensure_index_exists(docs_loader: Callable[[], list[Document]], force: bool=F
         index_cache.clear_cache()  # Clear cache when rebuilding
         docs = docs_loader()
         return build_index(docs)  # single pass
-    
+
     return index_cache.get_index()  # Use cached index
 
 def build_index(docs):
     """Build a Chroma index from a list of documents with batch embedding"""
     config = get_config()
     embedder = _get_embedder()
-    
+
     # Process documents in batches for better performance
     batch_size = 50  # Simple batch size
     batched_docs = [docs[i:i + batch_size] for i in range(0, len(docs), batch_size)]
-    
+
     db = None
     for i, batch in enumerate(batched_docs):
         if i == 0:
@@ -57,7 +57,7 @@ def build_index(docs):
         else:
             # Add subsequent batches to existing index
             db.add_documents(batch)
-    
+
     return db
 
 def load_index():

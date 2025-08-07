@@ -33,7 +33,7 @@ def answer(question: str, force_reindex: bool = False, use_cache: bool = True) -
     """
     config = get_config()
     cache = get_cache()
-    
+
     # Check cache first
     if use_cache:
         cached_answer = cache.get(question)
@@ -70,7 +70,7 @@ def answer(question: str, force_reindex: bool = False, use_cache: bool = True) -
 
     # Log RAG metrics to LangSmith (sample rate can be controlled via env var)
     evaluate_and_log(question, result, context)
-    
+
     # Cache the result
     if use_cache:
         cache.set(question, result)

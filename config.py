@@ -34,7 +34,7 @@ class RAGConfig:
     eval_model: str = 'gpt-4o-mini'
     eval_temperature: float = 0.0
     eval_max_tokens: int = 200
-    
+
     # Retrieval Configuration (additional)
     default_retrieval_k: int = 6
     title_page_number: int = 0

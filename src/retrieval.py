@@ -2,6 +2,7 @@
 
 from langchain.schema import Document
 from langchain_chroma import Chroma
+
 from config import get_config
 
 
@@ -10,7 +11,7 @@ def get_metadata(index: Chroma, question: str, k: int=None) -> list[Document]:
     config = get_config()
     if k is None:
         k = config.default_retrieval_k
-        
+
     # Normalize question for keyword checks
     question_lower = question.lower()
 
