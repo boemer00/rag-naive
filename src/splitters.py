@@ -31,10 +31,10 @@ def split_text(docs, chunk_size: int=None, chunk_overlap: int=None):
         detected_section = 'content'  # default
 
         # Simple flag for first page (likely contains title)
-        if chunk.metadata.get('page', 999) == 0:
+        if chunk.metadata.get('page', config.fallback_page_number) == config.title_page_number:
             chunk.metadata['is_title_page'] = True
 
-        for line in lines[:3]:  # Check first few lines
+        for line in lines[:config.section_preview_lines]:  # Check first few lines
             line_clean = line.strip().lower()
             for pattern in section_patterns:
                 if re.match(pattern, line_clean, re.IGNORECASE):

@@ -2,10 +2,15 @@
 
 from langchain.schema import Document
 from langchain_chroma import Chroma
+from config import get_config
 
 
-def get_metadata(index: Chroma, question: str, k: int=6) -> list[Document]:
+def get_metadata(index: Chroma, question: str, k: int=None) -> list[Document]:
     """Return top-k documents with metadata, a boosting for title/author queries"""
+    config = get_config()
+    if k is None:
+        k = config.default_retrieval_k
+        
     # Normalize question for keyword checks
     question_lower = question.lower()
 
@@ -26,7 +31,7 @@ def get_metadata(index: Chroma, question: str, k: int=6) -> list[Document]:
     if any(word in question_lower for word in boost_keywords):
         try:
             # Retrieve docs from the first page (typically contains title/author)
-            page_0_results = index.get(where={'page': 0})
+            page_0_results = index.get(where={'page': config.title_page_number})
 
             if page_0_results and 'documents' in page_0_results:
                 page_0_docs: list[Document] = []
@@ -43,7 +48,7 @@ def get_metadata(index: Chroma, question: str, k: int=6) -> list[Document]:
                 combined_docs: list[Document] = page_0_docs.copy()
 
                 for doc in semantic_docs:
-                    if not any(d.page_content[:100] == doc.page_content[:100] for d in combined_docs):
+                    if not any(d.page_content[:config.content_preview_length] == doc.page_content[:config.content_preview_length] for d in combined_docs):
                         combined_docs.append(doc)
 
                 return combined_docs[:k]

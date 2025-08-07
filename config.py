@@ -32,6 +32,15 @@ class RAGConfig:
     # Evaluation Configuration
     eval_sample_rate: float = 0.05
     eval_model: str = 'gpt-4o-mini'
+    eval_temperature: float = 0.0
+    eval_max_tokens: int = 200
+    
+    # Retrieval Configuration (additional)
+    default_retrieval_k: int = 6
+    title_page_number: int = 0
+    content_preview_length: int = 100
+    section_preview_lines: int = 3
+    fallback_page_number: int = 999
 
     @classmethod
     def from_env(cls) -> 'RAGConfig':
@@ -52,6 +61,13 @@ class RAGConfig:
             persist_directory=os.getenv('PERSIST_DIRECTORY', 'db'),
             eval_sample_rate=float(os.getenv('EVAL_SAMPLE_RATE', '0.05')),
             eval_model=os.getenv('RAG_EVAL_MODEL', 'gpt-4o-mini'),
+            eval_temperature=float(os.getenv('EVAL_TEMPERATURE', '0.0')),
+            eval_max_tokens=int(os.getenv('EVAL_MAX_TOKENS', '200')),
+            default_retrieval_k=int(os.getenv('DEFAULT_RETRIEVAL_K', '6')),
+            title_page_number=int(os.getenv('TITLE_PAGE_NUMBER', '0')),
+            content_preview_length=int(os.getenv('CONTENT_PREVIEW_LENGTH', '100')),
+            section_preview_lines=int(os.getenv('SECTION_PREVIEW_LINES', '3')),
+            fallback_page_number=int(os.getenv('FALLBACK_PAGE_NUMBER', '999')),
         )
 
 # Global config instance
