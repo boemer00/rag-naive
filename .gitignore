@@ -7,3 +7,7 @@ __pycache__/
 .coverage
 .coverage.*
 db/
+.xml
+export.xml
+export.xml
+*.db
