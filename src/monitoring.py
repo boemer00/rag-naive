@@ -44,8 +44,8 @@ def evaluate_rag(question: str, answer: str, context: str) -> dict[str, float]:
     from langchain_openai import ChatOpenAI
     llm = ChatOpenAI(
         model=config.eval_model,
-        temperature=0,
-        max_tokens=200,
+        temperature=config.eval_temperature,
+        max_tokens=config.eval_max_tokens,
         openai_api_key=config.openai_api_key
     )
 
