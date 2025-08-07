@@ -10,3 +10,4 @@ db/
 .xml
 export.xml
 export.xml
+*.db
