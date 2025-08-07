@@ -1,19 +1,17 @@
 """Simple health data schema for biomarker tracking."""
 
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Optional
 
 
 @dataclass
 class HealthMetrics:
     """Core biomarkers from wearable devices."""
     date: str
-    heart_rate_resting: Optional[float] = None
-    vo2_max: Optional[float] = None
-    sleep_duration: Optional[float] = None  # hours
-    blood_pressure_systolic: Optional[int] = None
-    blood_pressure_diastolic: Optional[int] = None
+    heart_rate_resting: float | None = None
+    vo2_max: float | None = None
+    sleep_duration: float | None = None  # hours
+    blood_pressure_systolic: int | None = None
+    blood_pressure_diastolic: int | None = None
     source: str = "apple_health"
 
     def to_dict(self) -> dict:
