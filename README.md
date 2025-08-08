@@ -90,8 +90,8 @@ rag-naive/
 ├── main.py                 # CLI entry point
 ├── config.py               # Env-driven configuration
 ├── requirements.txt        # Locked dependencies
-├── demo_multidoc.py        # Multi-document RAG demonstration
-├── compare_answers.py      # RAG vs direct LLM comparison
+├── fetch_longevity_papers.py   # Build PMC longevity corpus and index
+├── fetch_vo2max_papers.py      # Add VO2max-focused PMC papers
 └── README.md               # You are here
 ```
 
@@ -200,11 +200,14 @@ The CI pipeline works both with and without OpenAI API keys, using intelligent m
 The system now automatically processes **multiple research papers** with rich metadata:
 
 ```bash
-# View corpus analysis
-python demo_multidoc.py
+# Build longevity corpus from PMC and index
+python fetch_longevity_papers.py --limit 50
 
-# Compare RAG vs direct LLM answers
-python compare_answers.py
+# Add VO2max-focused papers and update index
+python fetch_vo2max_papers.py
+
+# Run performance comparison tests (RAG vs direct LLM)
+pytest tests/performance/test_rag_vs_llm.py -q
 ```
 
 ### Corpus Statistics

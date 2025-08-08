@@ -23,15 +23,16 @@ def load_source_docs(pdf_path: Path | str | None = None, pmc_query: str | None =
         pmc_source = PMCSource()
         pmc_docs = pmc_source.fetch_papers(pmc_query, pmc_limit)
 
-        # PMC papers come pre-chunked and processed, add directly
-        all_documents.extend(pmc_docs)
+        # Split PMC documents for consistent retrieval granularity (same as PDFs)
+        pmc_chunks = split_text(pmc_docs)
+        all_documents.extend(pmc_chunks)
 
-        # Apply your existing metadata enrichment to PMC docs
+        # Mark original PMC papers as processed in tracker
         for doc in pmc_docs:
             # Mark as processed in tracker
             pmc_source.tracker.mark_processed(doc.metadata.get('paper_id'))
 
-        print(f"Added {len(pmc_docs)} PMC papers to corpus")
+        print(f"Added {len(pmc_chunks)} PMC chunks from {len(pmc_docs)} PMC papers to corpus")
 
     # Handle PDF sources (existing logic)
     if pdf_path:
