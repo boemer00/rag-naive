@@ -41,6 +41,17 @@ class SimpleCache:
         except Exception:
             pass
 
+    def clear_all(self) -> None:
+        """Clear all cached responses."""
+        try:
+            for file_path in self.cache_dir.glob("*.pkl"):
+                try:
+                    file_path.unlink()
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
 
 # Global cache instance
 _cache: SimpleCache | None = None

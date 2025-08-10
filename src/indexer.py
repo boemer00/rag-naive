@@ -30,7 +30,13 @@ def ensure_index_exists(docs_loader: Callable[[], list[Document]], force: bool=F
     index_cache = get_index_cache()
 
     if force or not persist_path.exists():
-        index_cache.clear_cache()  # Clear cache when rebuilding
+        index_cache.clear_cache()  # Clear vector index cache when rebuilding
+        # Also clear response cache to avoid stale answers tied to old corpus
+        try:
+            from src.cache import get_cache
+            get_cache().clear_all()
+        except Exception:
+            pass
         docs = docs_loader()
         return build_index(docs)  # single pass
 
