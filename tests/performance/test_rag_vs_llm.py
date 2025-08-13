@@ -90,19 +90,18 @@ class RAGvsLLMTester:
         self.results: list[ComparisonResult] = []
 
     def get_rag_answer(self, question: str) -> tuple[str, float]:
-        """Get answer from RAG system with timing."""
+        """Get answer from the new agentic RAG with timing."""
         start_time = time.time()
         try:
-            result = subprocess.run([
-                sys.executable, 'main.py', question
-            ], capture_output=True, text=True, cwd='/Users/renatoboemer/code/developer/rag-naive')
+            from src.indexer import ensure_index_exists
+            from src.utils import load_source_docs
+            from src.agent import DecisionAgent
 
-            response_time = time.time() - start_time
-
-            if result.returncode == 0:
-                return result.stdout.strip(), response_time
-            else:
-                return f"Error: {result.stderr}", response_time
+            index = ensure_index_exists(load_source_docs, force=False)
+            agent = DecisionAgent(index=index)
+            result = agent.run(question)
+            answer = result.answer or f"Error: status={result.status}"
+            return answer, time.time() - start_time
         except Exception as e:
             return f"Error: {e}", time.time() - start_time
 
