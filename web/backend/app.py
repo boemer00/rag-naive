@@ -16,7 +16,6 @@ from typing import Final
 from fastapi import FastAPI, UploadFile, Form, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
-# Imports of existing core functions (unused in scaffold; referenced to avoid lint warnings)
 from main import answer
 from src.mcp.health_analyzer import analyze_health_metrics
 
