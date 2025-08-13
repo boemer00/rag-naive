@@ -8,18 +8,12 @@ an "impossible" stop state.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Iterable
 
 from langchain_chroma import Chroma
 
 from .policy import PolicyConfig
+from .tools import assess_results, generate_answer, retrieve_semantic, retrieve_with_filters
 from .types import AgentContext, AgentNodeTrace, AgentResult
-from .tools import (
-    assess_results,
-    generate_answer,
-    retrieve_semantic,
-    retrieve_with_filters,
-)
 
 
 @dataclass

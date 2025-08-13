@@ -5,15 +5,9 @@ coordinates retrieval, assessment, and answer generation. Implementations will
 be added in a later step.
 """
 
-from .types import (
-    AgentContext,
-    AgentNodeTrace,
-    AgentResult,
-    StopReason,
-)
-
-from .policy import PolicyConfig
 from .decision_tree import DecisionAgent
+from .policy import PolicyConfig
+from .types import AgentContext, AgentNodeTrace, AgentResult, StopReason
 
 __all__ = [
     "AgentContext",

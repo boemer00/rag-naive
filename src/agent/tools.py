@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from langchain.prompts import PromptTemplate
 from langchain.schema import Document
 from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
 
 from config import get_config
 from src.chain import PROMPT_RAG

@@ -5,8 +5,6 @@ Tests multiple question types and provides quantitative evaluation.
 """
 
 import re
-import subprocess
-import sys
 import time
 from dataclasses import dataclass
 
@@ -14,8 +12,8 @@ import openai
 
 from config import get_config
 from src.indexer import ensure_index_exists
-from src.utils import load_source_docs
 from src.monitoring import evaluate_rag
+from src.utils import load_source_docs
 
 
 @dataclass

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+from src.agent import DecisionAgent
 from src.indexer import ensure_index_exists
 from src.utils import load_source_docs
-from src.agent import DecisionAgent
 
 
 @pytest.mark.integration
