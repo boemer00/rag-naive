@@ -39,20 +39,39 @@ class MockChatOpenAI:
 
 
 @pytest.fixture(autouse=True)
-def setup_test_environment(monkeypatch):
-    """Set up test environment with proper mocking."""
+def setup_test_environment(monkeypatch, request):
+    """Set up test environment with proper mocking.
+
+    By default, mocks are applied. For performance comparison modules,
+    we intentionally avoid mocking to allow real API comparisons.
+    """
     # Disable LangSmith during tests
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
     monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
 
-    # Set test OpenAI key if not provided
+    # Determine if current test is a performance comparison
+    test_path = str(getattr(request.node, 'fspath', ''))
+    is_perf_module = (
+        "tests/performance/test_rag_vs_llm.py" in test_path
+        or "tests/performance/test_quality_gates.py" in test_path
+    )
+
+    if is_perf_module:
+        # Do NOT set a fake key; require a real OPENAI_API_KEY for these tests
+        yield
+        return
+
+    # For all other tests, ensure a test key and mock APIs to avoid cost
     if not os.getenv("OPENAI_API_KEY"):
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key-for-testing")
 
-    # Mock OpenAI classes to avoid API calls in most tests
+    # Patch both the library symbols and the module-level imported aliases used in our code
     with patch('langchain_openai.OpenAIEmbeddings', MockOpenAIEmbeddings):
         with patch('langchain_openai.ChatOpenAI', MockChatOpenAI):
-            yield
+            with patch('src.indexer.OpenAIEmbeddings', MockOpenAIEmbeddings):
+                with patch('src.chain.ChatOpenAI', MockChatOpenAI):
+                    with patch('src.agent.tools.ChatOpenAI', MockChatOpenAI):
+                        yield
 
 
 @pytest.fixture
