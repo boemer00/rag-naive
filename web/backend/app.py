@@ -13,12 +13,11 @@ import os
 import tempfile
 from typing import Final
 
-from fastapi import FastAPI, UploadFile, Form, HTTPException, status
+from fastapi import FastAPI, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from main import answer
 from src.mcp.health_analyzer import analyze_health_metrics
-
 
 app = FastAPI(title="Longevity RAG Web API", version="0.1.0")
 
@@ -52,7 +51,7 @@ async def query(question: str = Form(...)) -> dict[str, str]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to process query.",
-        )
+        ) from None
 
 
 @app.post("/health-analysis")
@@ -113,4 +112,4 @@ async def health_analysis(file: UploadFile, question: str = Form(...)) -> dict[s
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to analyze health data.",
-        )
+        ) from None
