@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "metrics": {
+    "total_tests": 6,
+    "citation_rate_covered": 1.0,
+    "honesty_rate_uncovered": 1.0,
+    "avg_specificity_ratio": 1.534556336020221,
+    "max_response_time": 3.9957330226898193,
+    "avg_rag_specificity": 9.273617511520738,
+    "avg_rag_faithfulness": 0.8833333333333333,
+    "gates_passed": {
+      "citation_rate": "100.0% >= 90.0%",
+      "honesty_rate": "100.0% >= 80.0%",
+      "specificity_ratio": "1.53 >= 1.00",
+      "response_time": "4.00s <= 15.0s",
+      "overall_specificity": "9.27 >= 5.0",
+      "faithfulness": "0.88 >= 0.7"
+    },
+    "gates_failed": {}
+  },
+  "timestamp": "2025-08-13T17:42:16.431493",
+  "test_count": 6
+}
