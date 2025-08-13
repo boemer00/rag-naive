@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from langchain_chroma import Chroma
 import pytest
+from langchain_chroma import Chroma
 
 from src.agent import DecisionAgent, PolicyConfig
 
