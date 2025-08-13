@@ -5,8 +5,8 @@ No implementation logic is provided in this step.
 
 from __future__ import annotations
 
-from typing import Any, Literal, Protocol
 from dataclasses import dataclass, field
+from typing import Any, Literal, Protocol
 
 StopReason = Literal["completed", "impossible", "max_passes", "error"]
 
