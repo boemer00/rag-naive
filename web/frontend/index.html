@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Longevity RAG – PoC</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; line-height: 1.5; }
+      h1 { margin-bottom: 0.25rem; }
+      .section { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
+      label { display: block; font-weight: 600; margin: 0.5rem 0 0.25rem; }
+      input[type="text"], input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; }
+      button { margin-top: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 6px; background: #111827; color: white; border: none; cursor: pointer; }
+      button:disabled { opacity: 0.6; cursor: wait; }
+      .results { white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 8px; }
+      .muted { color: #6b7280; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Longevity RAG</h1>
+    <p class="muted">Minimal web interface</p>
+
+    <section class="section">
+      <h2>Research Query</h2>
+      <form id="query-form">
+        <label for="question">Question</label>
+        <input id="question" name="question" type="text" placeholder="e.g., What improves VO2 max fastest?" required />
+        <button type="submit">Ask</button>
+      </form>
+    </section>
+
+    <section class="section">
+      <h2>Apple Health Analysis</h2>
+      <form id="health-form">
+        <label for="health-file">Apple Health export (export.xml)</label>
+        <input id="health-file" name="file" type="file" accept=".xml" required />
+        <label for="health-question">Question</label>
+        <input id="health-question" name="question" type="text" placeholder="e.g., How are my cardio trends?" required />
+        <button type="submit">Analyze</button>
+      </form>
+    </section>
+
+    <section class="section">
+      <h2>Results</h2>
+      <div id="results" class="results">Ready.</div>
+    </section>
+
+    <script>
+      const resultsEl = document.getElementById('results');
+
+      function setLoading(isLoading) {
+        if (isLoading) {
+          resultsEl.textContent = 'Loading...';
+        }
+      }
+
+      function showError(message) {
+        resultsEl.textContent = `Error: ${message}`;
+      }
+
+      function showAnswer(answer) {
+        resultsEl.textContent = answer ?? '';
+      }
+
+      // Research query form
+      document.getElementById('query-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const question = document.getElementById('question').value.trim();
+        if (!question) return;
+        setLoading(true);
+        try {
+          const form = new URLSearchParams();
+          form.append('question', question);
+          const resp = await fetch('http://localhost:8000/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form.toString(),
+          });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.detail || 'Request failed');
+          showAnswer(data.answer);
+        } catch (err) {
+          showError(err.message || String(err));
+        }
+      });
+
+      // Health analysis form
+      document.getElementById('health-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById('health-file');
+        const question = document.getElementById('health-question').value.trim();
+        if (!fileInput.files[0] || !question) return;
+        setLoading(true);
+        try {
+          const formData = new FormData();
+          formData.append('file', fileInput.files[0]);
+          formData.append('question', question);
+          const resp = await fetch('http://localhost:8000/health-analysis', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.detail || 'Request failed');
+          showAnswer(data.answer);
+        } catch (err) {
+          showError(err.message || String(err));
+        }
+      });
+    </script>
+  </body>
+  </html>

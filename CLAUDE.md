@@ -62,7 +62,7 @@ This project audit evaluates the current state of the longevity research RAG sys
 - **Example**: "You have 30 mins Thursday - schedule Zone 2 cardio?"
 
 **2. WhatsApp AI Assistant**
-- **Current**: None  
+- **Current**: None
 - **Needed**: WhatsApp Business API integration
 - **Features**: Conversational health coaching, quick questions, reminders
 - **Example**: "WhatsApp: How's my sleep trend this week?"
@@ -94,7 +94,7 @@ This project audit evaluates the current state of the longevity research RAG sys
    - Single-page app with file upload for Apple Health data
    - Text input for research questions
    - Results display with citations and feedback collection
-   - Deploy on Vercel/Netlify for easy access
+   - Deploy on Vercel for easy access
 
 2. **User Experience Improvements**
    - Add `--demo` flag with sample data
@@ -108,7 +108,7 @@ This project audit evaluates the current state of the longevity research RAG sys
    - Response quality metrics
    - Simple thumbs up/down feedback system
 
-**Success Metrics**: 
+**Success Metrics**:
 - 50+ user interactions
 - <30 second response times
 - >70% positive feedback rate
@@ -198,7 +198,7 @@ web/
 ```python
 # Core endpoints needed
 POST /api/analyze-health    # Upload health data + question
-GET  /api/research         # Research-only queries  
+GET  /api/research         # Research-only queries
 POST /api/feedback         # User feedback collection
 GET  /api/stats           # Usage analytics
 ```
@@ -219,8 +219,8 @@ class HealthGoal:
     target_value: float
     frequency: str  # daily, weekly
     current_progress: float
-    
-@dataclass 
+
+@dataclass
 class ScheduleOpportunity:
     start_time: datetime
     duration: int  # minutes
