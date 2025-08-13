@@ -6,8 +6,7 @@ No implementation logic is provided in this step.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal, Protocol
-
+from typing import Any, Protocol, Literal
 
 StopReason = Literal["completed", "impossible", "max_passes", "error"]
 
@@ -57,6 +56,3 @@ class Tool(Protocol):
 
     def __call__(self, ctx: AgentContext, **kwargs: Any) -> dict[str, Any]:
         ...
-
-
-
