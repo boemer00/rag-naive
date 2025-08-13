@@ -21,6 +21,7 @@ class QualityGates:
     MIN_SPECIFICITY_RATIO = 1.0         # RAG should be >= LLM specificity
     MAX_RESPONSE_TIME = 15.0            # Max 15 seconds per response
     MIN_OVERALL_SPECIFICITY = 5.0       # Minimum technical depth
+    MIN_FAITHFULNESS = 0.70             # Minimum average faithfulness
 
     @classmethod
     def check_all_gates(cls, results: list) -> tuple[bool, dict]:
@@ -44,6 +45,7 @@ class QualityGates:
             "avg_specificity_ratio": 0.0,
             "max_response_time": 0.0,
             "avg_rag_specificity": 0.0,
+            "avg_rag_faithfulness": 0.0,
             "gates_passed": {},
             "gates_failed": {}
         }
@@ -97,6 +99,15 @@ class QualityGates:
             metrics["gates_passed"]["overall_specificity"] = f"{avg_specificity:.2f} >= {cls.MIN_OVERALL_SPECIFICITY}"
         else:
             metrics["gates_failed"]["overall_specificity"] = f"{avg_specificity:.2f} < {cls.MIN_OVERALL_SPECIFICITY}"
+
+        # Check average faithfulness
+        avg_faithfulness = sum(getattr(r, 'rag_faithfulness', 0.0) for r in results) / len(results)
+        metrics["avg_rag_faithfulness"] = avg_faithfulness
+
+        if avg_faithfulness >= cls.MIN_FAITHFULNESS:
+            metrics["gates_passed"]["faithfulness"] = f"{avg_faithfulness:.2f} >= {cls.MIN_FAITHFULNESS}"
+        else:
+            metrics["gates_failed"]["faithfulness"] = f"{avg_faithfulness:.2f} < {cls.MIN_FAITHFULNESS}"
 
         # Overall pass/fail
         all_passed = len(metrics["gates_failed"]) == 0

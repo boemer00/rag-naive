@@ -13,6 +13,9 @@ from dataclasses import dataclass
 import openai
 
 from config import get_config
+from src.indexer import ensure_index_exists
+from src.utils import load_source_docs
+from src.monitoring import evaluate_rag
 
 
 @dataclass
@@ -38,6 +41,8 @@ class ComparisonResult:
     llm_word_count: int
     rag_specificity_score: float
     llm_specificity_score: float
+    rag_faithfulness: float
+    llm_faithfulness: float
 
 
 # Test questions covering different scenarios
@@ -93,8 +98,6 @@ class RAGvsLLMTester:
         """Get answer from the new agentic RAG with timing."""
         start_time = time.time()
         try:
-            from src.indexer import ensure_index_exists
-            from src.utils import load_source_docs
             from src.agent import DecisionAgent
 
             index = ensure_index_exists(load_source_docs, force=False)
@@ -188,6 +191,19 @@ class RAGvsLLMTester:
         rag_specificity = self.calculate_specificity_score(rag_answer)
         llm_specificity = self.calculate_specificity_score(llm_answer)
 
+        # Build a retrieval context to evaluate faithfulness
+        try:
+            index = ensure_index_exists(load_source_docs, force=False)
+            docs = index.similarity_search(question.question, k=6)
+            context_text = "\n\n".join(d.page_content for d in docs)
+        except Exception:
+            context_text = ""
+
+        rag_eval = evaluate_rag(question.question, rag_answer, context_text) or {}
+        llm_eval = evaluate_rag(question.question, llm_answer, context_text) or {}
+        rag_faithfulness = float(rag_eval.get("faithfulness", 0.0))
+        llm_faithfulness = float(llm_eval.get("faithfulness", 0.0))
+
         print(f"✅ Completed in {rag_time:.2f}s (RAG) + {llm_time:.2f}s (LLM)")
 
         return ComparisonResult(
@@ -201,7 +217,9 @@ class RAGvsLLMTester:
             rag_word_count=rag_words,
             llm_word_count=llm_words,
             rag_specificity_score=rag_specificity,
-            llm_specificity_score=llm_specificity
+            llm_specificity_score=llm_specificity,
+            rag_faithfulness=rag_faithfulness,
+            llm_faithfulness=llm_faithfulness,
         )
 
     def print_detailed_results(self, result: ComparisonResult):
@@ -228,6 +246,7 @@ class RAGvsLLMTester:
         print(f"Word Count:        RAG: {result.rag_word_count}         |  LLM: {result.llm_word_count}")
         print(f"Has Citations:     RAG: {'✅' if result.rag_has_citations else '❌'}            |  LLM: ❌")
         print(f"Specificity Score: RAG: {result.rag_specificity_score:.2f}        |  LLM: {result.llm_specificity_score:.2f}")
+        print(f"Faithfulness:      RAG: {result.rag_faithfulness:.2f}        |  LLM: {result.llm_faithfulness:.2f}")
 
     def generate_summary_metrics(self):
         """Generate overall summary metrics."""
