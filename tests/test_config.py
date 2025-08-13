@@ -65,9 +65,13 @@ def setup_test_environment(monkeypatch, request):
     if not os.getenv("OPENAI_API_KEY"):
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key-for-testing")
 
+    # Patch both the library symbols and the module-level imported aliases used in our code
     with patch('langchain_openai.OpenAIEmbeddings', MockOpenAIEmbeddings):
         with patch('langchain_openai.ChatOpenAI', MockChatOpenAI):
-            yield
+            with patch('src.indexer.OpenAIEmbeddings', MockOpenAIEmbeddings):
+                with patch('src.chain.ChatOpenAI', MockChatOpenAI):
+                    with patch('src.agent.tools.ChatOpenAI', MockChatOpenAI):
+                        yield
 
 
 @pytest.fixture
