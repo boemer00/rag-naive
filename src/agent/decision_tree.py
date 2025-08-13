@@ -12,7 +12,12 @@ from dataclasses import dataclass, field
 from langchain_chroma import Chroma
 
 from .policy import PolicyConfig
-from .tools import assess_results, generate_answer, retrieve_semantic, retrieve_with_filters
+from .tools import (
+    assess_results,
+    generate_answer,
+    retrieve_semantic,
+    retrieve_with_filters,
+)
 from .types import AgentContext, AgentNodeTrace, AgentResult
 
 
