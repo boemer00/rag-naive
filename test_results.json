@@ -2,23 +2,23 @@
   "passed": false,
   "metrics": {
     "total_tests": 6,
-    "citation_rate_covered": 1.0,
+    "citation_rate_covered": 0.6666666666666666,
     "honesty_rate_uncovered": 1.0,
-    "avg_specificity_ratio": 1.4760540892241532,
-    "max_response_time": 3.2117257118225098,
-    "avg_rag_specificity": 9.626870713827236,
+    "avg_specificity_ratio": 1.2782588022967831,
+    "max_response_time": 4.051571846008301,
+    "avg_rag_specificity": 7.868256348016469,
     "avg_rag_faithfulness": 0.0,
     "gates_passed": {
-      "citation_rate": "100.0% >= 90.0%",
       "honesty_rate": "100.0% >= 80.0%",
-      "specificity_ratio": "1.48 >= 1.00",
-      "response_time": "3.21s <= 15.0s",
-      "overall_specificity": "9.63 >= 5.0"
+      "specificity_ratio": "1.28 >= 1.00",
+      "response_time": "4.05s <= 15.0s",
+      "overall_specificity": "7.87 >= 5.0"
     },
     "gates_failed": {
+      "citation_rate": "66.7% < 90.0%",
       "faithfulness": "0.00 < 0.7"
     }
   },
-  "timestamp": "2025-08-13T17:45:42.387867",
+  "timestamp": "2025-08-14T08:58:15.573596",
   "test_count": 6
 }

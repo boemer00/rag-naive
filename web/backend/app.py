@@ -17,6 +17,9 @@ from fastapi import FastAPI, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from main import answer
+from src.agent.decision_tree import DecisionAgent
+from src.agent.policy import PolicyConfig
+from src.index_cache import get_index_cache
 from src.mcp.health_analyzer import analyze_health_metrics
 
 app = FastAPI(title="Longevity RAG Web API", version="0.1.0")
@@ -53,6 +56,62 @@ async def query(question: str = Form(...)) -> dict[str, str]:
             detail="Failed to process query.",
         ) from None
 
+
+@app.post("/assistant/message")
+async def assistant_message(
+    question: str = Form(...),
+    use_agent: str | None = Form(None),
+) -> dict:
+    """Assistant endpoint with optional agent routing.
+
+    Returns a compact trace when agent mode is enabled.
+    """
+    if not question or not question.strip():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Question is required.",
+        )
+
+    use_agent_normalized = (use_agent or "false").strip().lower() in {"1", "true", "yes", "on"}
+
+    if not use_agent_normalized:
+        try:
+            result: str = answer(question.strip())
+            return {"answer": result, "status": "completed", "trace": []}
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to process message.",
+            ) from None
+
+    # Agent path
+    try:
+        index = get_index_cache().get_index()
+        agent = DecisionAgent(index=index, policy=PolicyConfig())
+        agent_result = agent.run(question.strip())
+
+        compact_trace = [
+            {
+                "name": t.name,
+                "decision": t.decision,
+                # Limit outputs to compact summary metrics only
+                "outputs": {k: v for k, v in t.outputs.items() if k in {"score", "num_docs", "has_answer"}},
+            }
+            for t in agent_result.trace
+        ]
+
+        return {
+            "answer": agent_result.answer,
+            "status": agent_result.status,
+            "trace": compact_trace,
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Assistant failed to process message.",
+        ) from None
 
 @app.post("/health-analysis")
 async def health_analysis(file: UploadFile, question: str = Form(...)) -> dict[str, str]:
