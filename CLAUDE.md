@@ -1,353 +1,170 @@
-# Project Audit & Strategic Roadmap
+# Longevity Insights Platform — Audit, Architecture, and Phased Plan
 
-## Executive Summary
+This document captures the audit and the exact plan to build a streamlined longevity insights platform that integrates multiple device metrics into a unified view and offers bespoken and actionable insights to each user so they can improve key longevity metrics.
 
-This project audit evaluates the current state of the longevity research RAG system and provides a strategic roadmap for transitioning from the current PoC to a unified longevity platform that integrates:
-1. Wearable device data analysis
-2. Research paper querying via RAG
-3. AI calendar agent for longevity goal tracking
-4. WhatsApp AI assistant interface
-
-**Current Status**: 85% ready for PoC deployment with strong technical foundations.
+Target devices: Apple Watch, Garmin, Oura, Whoop.
+Core metrics: Heart Rate Variability (HRV), VO₂ Max / Cardiorespiratory Fitness, Sleep Quality & Architecture.
 
 ---
 
-## Current State Assessment
+## 1) Project audit
 
-### ✅ Strengths
+### Strengths
+- RAG core with Chroma and OpenAI; clean helpers and web API endpoints for `/query`, `/assistant/message`, `/health-analysis`.
+- Agent scaffold with semantic/filtered retries and compact, explainable trace.
+- Apple Health XML parsing and aggregation for resting HR, VO₂ max, and sleep duration with RAG context integration.
+- Minimal frontend providing forms for querying and Apple Health uploads.
 
-**Technical Foundation**:
-- **Robust RAG Pipeline**: 374 chunks from longevity research papers with rich metadata
-- **Multi-format Support**: Handles Apple Health XML exports, PDF research papers, PMC integration
-- **Production Architecture**: Clean separation of concerns (indexing, retrieval, analysis, monitoring)
-- **Quality Assurance**: 16 test cases with performance gates and regression detection
-- **Observability**: LangSmith integration for tracing and metrics
+### Gaps vs goal
+- No direct integrations for Garmin, Oura, Whoop (OAuth/webhooks missing). Apple Watch supported via manual XML only.
+- No per-user time-series storage for biometrics; Chroma is for documents, not metrics.
+- No cross-device standardization and calibration layer for HRV/VO₂ max/sleep.
+- No auth/consent model, token storage, encryption-at-rest, or PHI policy.
+- No insights rules/ML to generate proactive nudges; no WhatsApp integration.
+- Frontend lacks device connection flows, charts, freshness/status indicators.
 
-**Working Features**:
-- **CLI Research Tool** (`main.py`): Natural language queries against longevity research
-- **Health Data Analyzer** (`health_analysis.py`): Apple Health data + research insights
-- **Biomarker Analysis**: Specialized insights for VO2 max, heart rate, sleep metrics
-- **Smart Retrieval**: Topic-based and study-type filtering for precision
-
-**DevOps Ready**:
-- Comprehensive Makefile with CI/CD simulation
-- Pre-commit hooks for code quality
-- Docker-ready configuration with proper dependency management
-- Performance benchmarking and quality gates
-
-### ⚠️ Current Limitations
-
-**PoC Deployment Gaps (15% remaining)**:
-- No user-friendly web interface (currently CLI-only)
-- Missing environment setup documentation for end users
-- Limited error handling for malformed health data
-- No user onboarding flow or demo mode
-
-**Architecture Limitations**:
-- Two separate CLIs instead of unified experience
-- No API layer for future mobile/web interfaces
-- No user authentication or data persistence
-- No real-time notification system
+### Quick wins
+- Introduce a health domain with clear schemas for HRV/VO₂/Sleep and daily summaries.
+- Add a relational/time-series store (Postgres/TimescaleDB) and ETL jobs.
+- Stub device connectors and run the end-to-end pipeline with mocked data before real OAuth.
+- Choose canonical standards per metric and keep raw samples for traceability.
 
 ---
 
-## Vision Gap Analysis
+## 2) Phased plan
 
-### Missing Components for Unified Longevity Platform
+### Phase 1 — Web dashboard (MVP)
+Goal: Users connect devices (or upload Apple XML) and view standardized metrics and basic insights.
 
-**1. Calendar Integration & AI Agent**
-- **Current**: None
-- **Needed**: Google Calendar/Outlook API integration
-- **Features**: Schedule optimization, goal tracking, habit formation
-- **Example**: "You have 30 mins Thursday - schedule Zone 2 cardio?"
+- Backend
+  - Add auth (JWT + cookies) and user profiles.
+  - Device routes: `/devices/connect/{provider}`, `/devices/callback/{provider}`, `/devices/status`.
+  - Metrics routes: `/metrics/normalized?metric=hrv_rmssd&range=30d`, `/summaries/daily`, `/insights/latest`.
+  - Keep existing `/query`, `/assistant/message`, `/health-analysis` endpoints.
+- Frontend
+  - “Connect device” cards (Apple XML upload, Garmin, Oura, Whoop placeholders), connection status, last sync.
+  - Three charts: HRV, VO₂ max, Sleep; 7/30/90-day ranges; data freshness badges.
+  - Insights feed with basic rules (e.g., HRV 7-day drop > 20%).
+- Data
+  - Postgres (or TimescaleDB) for per-user time-series and summaries.
+  - ETL jobs to backfill/poll data until webhooks are enabled.
 
-**2. WhatsApp AI Assistant**
-- **Current**: None
-- **Needed**: WhatsApp Business API integration
-- **Features**: Conversational health coaching, quick questions, reminders
-- **Example**: "WhatsApp: How's my sleep trend this week?"
+### Phase 2 — Standardize the data
+Goal: Pick a reference standard per metric and normalize all devices to it with conversion/calibration.
 
-**3. Unified User Experience**
-- **Current**: Separate CLI tools
-- **Needed**: Single platform with user profiles
-- **Features**: Dashboard, historical tracking, personalized insights
+- HRV
+  - Canonical: RMSSD (ms). Many devices (Oura/Whoop) expose RMSSD; Apple often provides SDNN.
+  - Avoid global SDNN→RMSSD conversions; prefer storing both and learning per-user, per-device calibration (offset/scale) using overlapping windows.
+- VO₂ max
+  - Canonical: mL/kg/min. Prefer Garmin (Firstbeat) as reference where available; Apple “Cardio Fitness” as secondary.
+  - For devices lacking VO₂ max, provide an estimator (HR + pace + demographics) with provenance flags.
+- Sleep
+  - Canonical outputs: total sleep time, efficiency, stages (N1/N2/N3/REM), latency, WASO.
+  - Compute a transparent unified 0–100 sleep score with adjustable weights (age/sex aware).
+- Calibration service
+  - Store per-user/device calibration parameters and model version; periodically re-fit using overlaps; guardrails (min samples and drift checks).
 
-**4. Real-time Intelligence**
-- **Current**: Reactive queries only
-- **Needed**: Proactive recommendations based on data patterns
-- **Features**: Trend analysis, goal adjustment, intervention suggestions
+### Phase 3 — WhatsApp for nudges and quick insights
+Goal: Send personalized nudges, reminders, and insights via WhatsApp before building a full app.
 
-**5. Data Integration Layer**
-- **Current**: Apple Health only
-- **Needed**: Multi-device support (Garmin, Oura, Fitbit, etc.)
-- **Features**: Unified health data model, cross-device insights
-
----
-
-## Strategic Roadmap
-
-### Phase 1: PoC Deployment (1-2 weeks)
-**Goal**: Get current features in front of real users for feedback
-
-**Immediate Actions**:
-1. **Simple Web Interface**
-   - Single-page app with file upload for Apple Health data
-   - Text input for research questions
-   - Results display with citations and feedback collection
-   - Deploy on Vercel for easy access
-
-2. **User Experience Improvements**
-   - Add `--demo` flag with sample data
-   - Improve error messages and validation
-   - Add progress indicators for processing
-   - Create getting-started documentation
-
-3. **Analytics & Feedback**
-   - User interaction tracking
-   - Query pattern analysis
-   - Response quality metrics
-   - Simple thumbs up/down feedback system
-
-**Success Metrics**:
-- 50+ user interactions
-- <30 second response times
-- >70% positive feedback rate
-
-### Phase 2: Calendar Integration (3-4 weeks)
-**Goal**: Add AI calendar agent for goal tracking
-
-**Technical Implementation**:
-- Google Calendar API integration
-- Calendar analysis algorithms
-- Goal setting and tracking system
-- Scheduling optimization engine
-
-**Features**:
-- Analyze calendar for health opportunities
-- Suggest optimal workout/meal timing
-- Track progress against longevity goals
-- Automated scheduling with user approval
-
-**Success Metrics**:
-- Users scheduling 3+ health activities per week
-- 80% follow-through on AI suggestions
-
-### Phase 3: WhatsApp Integration (6-8 weeks)
-**Goal**: Conversational AI assistant via WhatsApp
-
-**Technical Implementation**:
-- WhatsApp Business API setup
-- Conversational flow design
-- Context-aware chat system
-- Integration with existing RAG pipeline
-
-**Features**:
-- Natural language health queries via WhatsApp
-- Daily/weekly check-ins and reminders
-- Quick biomarker status updates
-- Research-backed recommendations
-
-**Success Metrics**:
-- Daily active users engaging via WhatsApp
-- Average 5+ messages per user per week
-
-### Phase 4: Unified Platform (10-12 weeks)
-**Goal**: Complete integrated longevity platform
-
-**Technical Architecture**:
-- FastAPI backend unifying all services
-- User authentication and profiles
-- Multi-device data integration
-- Real-time notification system
-- Mobile app (React Native/Flutter)
-
-**Features**:
-- Unified dashboard across all touchpoints
-- Historical trend analysis
-- Personalized longevity coaching
-- Community features and challenges
+- Use WhatsApp Cloud API (Meta) or Twilio WhatsApp.
+- Messaging service: templated nudges, quiet hours, throttling, audit logging, and user preferences.
+- Trigger rules from the insights engine (e.g., HRV drop with poor sleep) and allow ad-hoc messages from the dashboard.
 
 ---
 
-## Technical Implementation Plan
+## 3) Architecture overview
 
-### Immediate PoC Web Interface
+### Data models (storage layer)
+- User: `id`, `email`, `hashed_password`, `created_at`.
+- DeviceAccount: `id`, `user_id`, `provider` in {apple_export, garmin, oura, whoop}, `access_token`, `refresh_token`, `scopes`, `expires_at`, `webhook_status`.
+- RawSample: `id`, `user_id`, `provider`, `metric_type` in {hrv_rmssd, hrv_sdnn, vo2max, sleep_stage, sleep_score, hr_resting}, `value`, `unit`, `start_time`, `end_time`, `ingested_at`, `source_id`.
+- NormalizedSample: `id`, `user_id`, `metric_type` in {hrv_rmssd, vo2max_mlkgmin, sleep_stage, sleep_score_0_100}, `value`, `unit`, `start_time`, `end_time`, `provenance`, `calibration_version`.
+- DailySummary: per-day aggregates and rolling stats for dashboard.
+- Insight: `id`, `user_id`, `kind`, `message`, `severity`, `created_at`, `evidence` (JSON).
+- Nudge: `id`, `user_id`, `channel` (whatsapp), `template_id`, `payload`, `status`, `sent_at`, `error`.
 
-**Technology Stack**:
-- **Frontend**: Next.js with React (fast deployment to Vercel)
-- **Backend**: FastAPI wrapper around existing Python code
-- **Database**: SQLite for user sessions and feedback
-- **Deployment**: Vercel (frontend) + Railway/Render (backend)
+### Modules and responsibilities
+- `src/integrations/`
+  - `base.py`: `DeviceConnector` interface: `get_oauth_authorize_url`, `exchange_code_for_token`, `refresh_token`, `fetch_metrics`, `handle_webhook`.
+  - `garmin.py`, `oura.py`, `whoop.py`: provider-specific clients (start with mocks).
+  - `apple.py`: XML upload path using existing Apple Health parser.
+- `src/normalization/`
+  - `schemas.py`: canonical enums and units.
+  - `mapper.py`: `to_canonical(raw, user_context) -> list[NormalizedSample]`.
+  - `calibration.py`: per-user/device parameter storage and re-fitting procedures.
+  - `vo2max_estimator.py`: optional estimator when VO₂ max absent.
+- `src/insights/`
+  - `rules.py`: transparent, testable rules (e.g., HRV 7-day avg drop).
+  - `generator.py`: convert streams → `Insight`s with evidence links.
+- `src/messaging/`
+  - `whatsapp.py`: send messages, verify webhooks, handle inbound.
+  - `scheduler.py`: schedule nudges with user preferences and throttling.
+- Backend (FastAPI)
+  - Auth: `/auth/signup`, `/auth/login`, `/auth/me`.
+  - Devices: `/devices/connect/{provider}`, `/devices/callback/{provider}`, `/devices/status`.
+  - Metrics: `/metrics/normalized`, `/summaries/daily`.
+  - Insights/Nudges: `/insights/latest`, `/nudges/test`.
+  - RAG endpoints preserved as-is.
+- Frontend
+  - Dashboard with device connection cards, three key charts (HRV, VO₂ max, Sleep), freshness, and insights list with “Send via WhatsApp”.
 
-**File Structure**:
+### Storage and jobs
+- Database: Postgres (consider TimescaleDB) with SQLAlchemy + Alembic.
+- Jobs: `apscheduler` or `RQ/Celery` for polling, backfills, and calibration re-fits.
+- Secrets: environment variables; encrypt PHI and tokens at rest.
+
+### Privacy and security
+- Consent per provider, audit logs, user data export/delete.
+- Least-privilege scopes for device APIs; rotation and revocation flows.
+- Clear data retention policies and user-facing privacy statements.
+
+---
+
+## 4) Environment and configuration
+Suggested `.env` keys (examples; names may vary by provider):
+
 ```
-web/
-├── frontend/          # Next.js app
-│   ├── pages/
-│   │   ├── index.js   # Main interface
-│   │   └── api/       # API routes
-│   └── components/
-├── backend/           # FastAPI wrapper
-│   ├── main.py        # FastAPI app
-│   ├── routes/        # API endpoints
-│   └── models/        # Data models
-└── shared/            # Common utilities
+# Core
+OPENAI_API_KEY=
+DATABASE_URL=postgresql+psycopg2://user:pass@host:5432/db
+
+# OAuth / device providers
+GARMIN_CLIENT_ID=
+GARMIN_CLIENT_SECRET=
+OURA_CLIENT_ID=
+OURA_CLIENT_SECRET=
+WHOOP_CLIENT_ID=
+WHOOP_CLIENT_SECRET=
+OAUTH_REDIRECT_BASE_URL=https://your.domain
+
+# WhatsApp
+WHATSAPP_API_BASE=https://graph.facebook.com/v19.0
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_ACCESS_TOKEN=
+WHATSAPP_VERIFY_TOKEN=
+
+# App
+JWT_SECRET=
+JWT_EXPIRES_MIN=60
 ```
 
-**API Design**:
-```python
-# Core endpoints needed
-POST /api/analyze-health    # Upload health data + question
-GET  /api/research         # Research-only queries
-POST /api/feedback         # User feedback collection
-GET  /api/stats           # Usage analytics
-```
+---
 
-### Calendar Integration Architecture
+## 5) Milestones and success metrics
 
-**Components**:
-- Calendar API clients (Google, Outlook, Apple)
-- Schedule analysis engine
-- Goal tracking system
-- Recommendation engine
-
-**Data Model**:
-```python
-@dataclass
-class HealthGoal:
-    goal_type: str  # exercise, sleep, nutrition
-    target_value: float
-    frequency: str  # daily, weekly
-    current_progress: float
-
-@dataclass
-class ScheduleOpportunity:
-    start_time: datetime
-    duration: int  # minutes
-    activity_type: str
-    confidence_score: float
-```
-
-### WhatsApp Integration
-
-**Technical Requirements**:
-- WhatsApp Business API account
-- Webhook endpoint for message handling
-- Session management for conversations
-- Integration with existing RAG system
-
-**Conversation Flow**:
-1. User sends health question
-2. System extracts intent and context
-3. Queries RAG system with user's health profile
-4. Returns personalized research-backed response
-5. Offers follow-up actions (scheduling, tracking)
+- Phase 1 (Dashboard MVP): device connection stubs, charts, and basic insights live; ≥10 test users; <2 min full sync; p95 endpoint latency <500 ms (excluding provider fetch time).
+- Phase 2 (Standardization): canonical metrics stored for all connected providers; calibration parameters learned for ≥70% of active users; backfill jobs stable.
+- Phase 3 (WhatsApp): opt-in messaging enabled; rate limits and quiet hours enforced; ≥30% of insights delivered via nudges get user engagement.
 
 ---
 
-## User Feedback Collection Strategy
+## 6) Implementation workflow
 
-### PoC Feedback Mechanisms
+We will follow a strict four-step workflow per feature/module:
+1) Design (responsibility, public interface, data models, no code)
+2) Scaffold (files and signatures, no logic)
+3) Implement (working code with type hints; env-driven config; mocks for externals)
+4) Test (pytest for all public interfaces and E2E flows)
 
-**Quantitative Metrics**:
-- Response time tracking
-- Query completion rates
-- Feature usage statistics
-- Error rates and types
-
-**Qualitative Feedback**:
-- Post-interaction surveys (1-2 questions max)
-- Thumbs up/down with optional comment
-- Feature request collection
-- User interview scheduling
-
-**Analytics Tools**:
-- Google Analytics for web interface
-- Custom event tracking for health queries
-- LangSmith for RAG performance monitoring
-- User journey mapping
-
-### Key Questions to Validate
-
-**User Value**:
-- Do users find the health insights actionable?
-- Which biomarkers generate most interest?
-- How often do users return for follow-up queries?
-
-**Technical Performance**:
-- Are response times acceptable (<30s)?
-- Do users understand the citations?
-- Which research papers are most relevant?
-
-**Platform Direction**:
-- Interest in calendar integration?
-- Preference for WhatsApp vs web interface?
-- Willingness to share more detailed health data?
-
----
-
-## Risk Mitigation
-
-### Technical Risks
-- **OpenAI API costs**: Implement caching and rate limiting
-- **Health data privacy**: HIPAA-compliant data handling
-- **System reliability**: Comprehensive error handling and fallbacks
-
-### Product Risks
-- **User adoption**: Start with health enthusiasts and quantified self community
-- **Feature complexity**: Maintain focus on core value proposition
-- **Market timing**: Validate demand before full platform build
-
-### Business Risks
-- **Regulatory compliance**: Health advice disclaimers and medical professional referrals
-- **Data liability**: Clear terms of service and privacy policy
-- **Competitive differentiation**: Focus on research-backed personalization
-
----
-
-## Success Metrics & KPIs
-
-### PoC Phase
-- **User Engagement**: 100 unique users in first month
-- **Query Quality**: >70% positive feedback rate
-- **Technical Performance**: <30s average response time
-- **User Retention**: >30% return usage rate
-
-### Growth Phase
-- **Monthly Active Users**: 1,000+ by month 6
-- **Feature Adoption**: >50% using multiple features
-- **Health Outcomes**: Measurable improvements in user biomarkers
-- **Platform Stickiness**: Daily/weekly usage patterns
-
-### Long-term Vision
-- **Platform Integration**: All 4 features actively used
-- **Health Impact**: Documented longevity improvements
-- **Community**: User-generated content and peer interactions
-- **Business Viability**: Clear path to sustainable revenue
-
----
-
-## Next Actions
-
-### Week 1-2: PoC Web Interface
-1. Set up Next.js frontend project
-2. Create FastAPI wrapper for existing Python code
-3. Implement file upload and query interface
-4. Deploy to staging environment
-5. Add basic analytics and feedback collection
-
-### Week 3-4: User Testing & Iteration
-1. Launch beta with 10-20 users
-2. Collect and analyze feedback
-3. Fix critical bugs and UX issues
-4. Prepare for broader launch
-5. Document user onboarding improvements
-
-### Month 2: Calendar Integration Planning
-1. Research calendar APIs and limitations
-2. Design goal-setting user interface
-3. Prototype schedule analysis algorithms
-4. Begin technical implementation
-5. Plan user testing for calendar features
-
-This strategic roadmap provides a clear path from your current strong technical foundation to the unified longevity platform vision, with concrete milestones and success metrics at each phase.
+This document aligns exactly with the current audit and the three-phase plan: build the dashboard, standardize metrics to canonical references, and integrate WhatsApp for engagement.
