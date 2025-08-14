@@ -3,52 +3,169 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Longevity RAG – PoC</title>
+    <title>Longevity Insights Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; line-height: 1.5; }
-      h1 { margin-bottom: 0.25rem; }
-      .section { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; line-height: 1.5; background: #f8fafc; }
+      .container { max-width: 1200px; margin: 0 auto; }
+      h1 { margin-bottom: 0.25rem; color: #1f2937; }
+      .section { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+      .chart-container { position: relative; height: 300px; margin: 1rem 0; }
+      .metric-card { text-align: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; background: #f8fafc; }
+      .metric-value { font-size: 2rem; font-weight: bold; color: #1f2937; }
+      .metric-label { font-size: 0.875rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+      .metric-change { font-size: 0.875rem; margin-top: 0.25rem; }
+      .metric-change.positive { color: #059669; }
+      .metric-change.negative { color: #dc2626; }
+      .metric-change.neutral { color: #6b7280; }
+      .tabs { display: flex; border-bottom: 1px solid #e5e7eb; margin-bottom: 1rem; }
+      .tab { padding: 0.5rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; }
+      .tab.active { border-bottom-color: #3b82f6; color: #3b82f6; font-weight: 600; }
+      .tab-content { display: none; }
+      .tab-content.active { display: block; }
       label { display: block; font-weight: 600; margin: 0.5rem 0 0.25rem; }
       input[type="text"], input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; }
-      button { margin-top: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 6px; background: #111827; color: white; border: none; cursor: pointer; }
+      button { margin-top: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 6px; background: #3b82f6; color: white; border: none; cursor: pointer; }
+      button:hover { background: #2563eb; }
       button:disabled { opacity: 0.6; cursor: wait; }
+      button.secondary { background: #6b7280; }
+      button.secondary:hover { background: #4b5563; }
       .results { white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 8px; }
       .muted { color: #6b7280; font-size: 0.9rem; }
+      .insights { margin-top: 1rem; }
+      .insight { padding: 1rem; margin-bottom: 0.5rem; border-radius: 6px; border-left: 4px solid #3b82f6; }
+      .insight.warning { border-left-color: #f59e0b; background: #fffbeb; }
+      .insight.info { border-left-color: #3b82f6; background: #eff6ff; }
+      .insight-message { font-weight: 500; }
+      .insight-time { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+      .upload-status { margin-top: 1rem; padding: 1rem; border-radius: 6px; }
+      .upload-status.success { background: #ecfdf5; border: 1px solid #86efac; color: #065f46; }
+      .upload-status.error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
     </style>
   </head>
   <body>
-    <h1>Longevity RAG</h1>
-    <p class="muted">Minimal web interface</p>
+    <div class="container">
+      <h1>Longevity Insights Platform</h1>
+      <p class="muted">Your personal health metrics dashboard and research assistant</p>
 
-    <section class="section">
-      <h2>Research Query</h2>
-      <form id="query-form">
-        <label for="question">Question</label>
-        <input id="question" name="question" type="text" placeholder="e.g., What improves VO2 max fastest?" required />
-        <label><input id="use-agent" name="use_agent" type="checkbox" /> Use Agent</label>
-        <button type="submit">Ask</button>
-      </form>
-    </section>
+      <div class="tabs">
+        <div class="tab active" data-tab="dashboard">Dashboard</div>
+        <div class="tab" data-tab="upload">Upload Data</div>
+        <div class="tab" data-tab="research">Research</div>
+      </div>
 
-    <section class="section">
-      <h2>Apple Health Analysis</h2>
-      <form id="health-form">
-        <label for="health-file">Apple Health export (export.xml)</label>
-        <input id="health-file" name="file" type="file" accept=".xml" required />
-        <label for="health-question">Question</label>
-        <input id="health-question" name="question" type="text" placeholder="e.g., How are my cardio trends?" required />
-        <button type="submit">Analyze</button>
-      </form>
-    </section>
+      <!-- Dashboard Tab -->
+      <div id="dashboard" class="tab-content active">
+        <div class="grid-3">
+          <div class="metric-card" id="hrv-card">
+            <div class="metric-value" id="hrv-value">--</div>
+            <div class="metric-label">HRV (RMSSD)</div>
+            <div class="metric-change" id="hrv-change">Loading...</div>
+          </div>
+          <div class="metric-card" id="vo2-card">
+            <div class="metric-value" id="vo2-value">--</div>
+            <div class="metric-label">VO₂ Max</div>
+            <div class="metric-change" id="vo2-change">Loading...</div>
+          </div>
+          <div class="metric-card" id="sleep-card">
+            <div class="metric-value" id="sleep-value">--</div>
+            <div class="metric-label">Sleep Score</div>
+            <div class="metric-change" id="sleep-change">Loading...</div>
+          </div>
+        </div>
 
-    <section class="section">
-      <h2>Results</h2>
-      <div id="results" class="results">Ready.</div>
-      <div id="trace" class="results" style="margin-top: 0.75rem; display: none;"></div>
-    </section>
+        <div class="grid">
+          <section class="section">
+            <h3>HRV Trend (30 days)</h3>
+            <div class="chart-container">
+              <canvas id="hrvChart"></canvas>
+            </div>
+          </section>
+          <section class="section">
+            <h3>VO₂ Max Trend (30 days)</h3>
+            <div class="chart-container">
+              <canvas id="vo2Chart"></canvas>
+            </div>
+          </section>
+        </div>
+
+        <section class="section">
+          <h3>Sleep Duration (30 days)</h3>
+          <div class="chart-container">
+            <canvas id="sleepChart"></canvas>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>Recent Insights</h3>
+          <div id="insights-container" class="insights">
+            <p class="muted">Loading insights...</p>
+          </div>
+          <button id="refresh-insights" class="secondary">Refresh Insights</button>
+        </section>
+      </div>
+
+      <!-- Upload Tab -->
+      <div id="upload" class="tab-content">
+        <section class="section">
+          <h3>Upload Apple Health Data</h3>
+          <form id="upload-form">
+            <label for="health-file">Apple Health export (export.xml)</label>
+            <input id="health-file" name="file" type="file" accept=".xml" required />
+            <button type="submit">Upload & Process</button>
+          </form>
+          <div id="upload-status" class="upload-status" style="display: none;"></div>
+        </section>
+
+        <section class="section">
+          <h3>Health Analysis</h3>
+          <form id="health-form">
+            <label for="health-question">Ask about your health data</label>
+            <input id="health-question" name="question" type="text" placeholder="e.g., How are my cardio trends?" required />
+            <button type="submit">Analyze</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Research Tab -->
+      <div id="research" class="tab-content">
+        <section class="section">
+          <h3>Research Query</h3>
+          <form id="query-form">
+            <label for="question">Ask about longevity research</label>
+            <input id="question" name="question" type="text" placeholder="e.g., What improves VO2 max fastest?" required />
+            <label><input id="use-agent" name="use_agent" type="checkbox" /> Use Agent</label>
+            <button type="submit">Ask</button>
+          </form>
+        </section>
+      </div>
+
+      <section class="section">
+        <h3>Results</h3>
+        <div id="results" class="results">Ready.</div>
+        <div id="trace" class="results" style="margin-top: 0.75rem; display: none;"></div>
+      </section>
+    </div>
 
     <script>
       const resultsEl = document.getElementById('results');
+      let hrvChart, vo2Chart, sleepChart;
+
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.dataset.tab;
+          // Update active tab
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          // Show corresponding content
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.toggle('active', content.id === tabId);
+          });
+        });
+      });
 
       function setLoading(isLoading) {
         if (isLoading) {
@@ -76,6 +193,183 @@
         traceEl.textContent = `Trace\n${lines.join('\n')}`;
       }
 
+      function showUploadStatus(message, isError = false) {
+        const statusEl = document.getElementById('upload-status');
+        statusEl.textContent = message;
+        statusEl.className = `upload-status ${isError ? 'error' : 'success'}`;
+        statusEl.style.display = 'block';
+      }
+
+      async function loadDashboard() {
+        try {
+          // Load metrics summary
+          const metricsResp = await fetch('http://localhost:8000/health-data/metrics');
+          if (metricsResp.ok) {
+            const data = await metricsResp.json();
+            updateMetricCards(data.daily_summaries);
+            updateCharts(data.daily_summaries);
+          }
+
+          // Load insights
+          const insightsResp = await fetch('http://localhost:8000/health-data/insights');
+          if (insightsResp.ok) {
+            const data = await insightsResp.json();
+            updateInsights(data.insights);
+          }
+        } catch (error) {
+          console.error('Failed to load dashboard:', error);
+        }
+      }
+
+      function updateMetricCards(summaries) {
+        if (!summaries || summaries.length === 0) {
+          document.getElementById('hrv-value').textContent = '--';
+          document.getElementById('vo2-value').textContent = '--';
+          document.getElementById('sleep-value').textContent = '--';
+          document.getElementById('hrv-change').textContent = 'No data';
+          document.getElementById('vo2-change').textContent = 'No data';
+          document.getElementById('sleep-change').textContent = 'No data';
+          return;
+        }
+
+        const latest = summaries[0];
+        const previous = summaries[1];
+
+        // HRV
+        if (latest.hrv_rmssd_avg) {
+          document.getElementById('hrv-value').textContent = `${latest.hrv_rmssd_avg.toFixed(1)}ms`;
+          if (previous && previous.hrv_rmssd_avg) {
+            const change = ((latest.hrv_rmssd_avg - previous.hrv_rmssd_avg) / previous.hrv_rmssd_avg * 100);
+            const changeEl = document.getElementById('hrv-change');
+            changeEl.textContent = `${change > 0 ? '+' : ''}${change.toFixed(1)}% vs yesterday`;
+            changeEl.className = `metric-change ${change > 0 ? 'positive' : change < 0 ? 'negative' : 'neutral'}`;
+          }
+        }
+
+        // VO2 Max
+        if (latest.vo2max_latest) {
+          document.getElementById('vo2-value').textContent = `${latest.vo2max_latest.toFixed(1)}`;
+          document.getElementById('vo2-change').textContent = 'mL/kg/min';
+        }
+
+        // Sleep
+        if (latest.sleep_score) {
+          document.getElementById('sleep-value').textContent = `${latest.sleep_score.toFixed(0)}/100`;
+          document.getElementById('sleep-change').textContent = `${latest.sleep_duration ? latest.sleep_duration.toFixed(1) + 'h' : ''}`;
+        }
+      }
+
+      function updateCharts(summaries) {
+        if (!summaries || summaries.length === 0) return;
+
+        const labels = summaries.slice(0, 30).reverse().map(s => s.date);
+        const hrvData = summaries.slice(0, 30).reverse().map(s => s.hrv_rmssd_avg);
+        const vo2Data = summaries.slice(0, 30).reverse().map(s => s.vo2max_latest);
+        const sleepData = summaries.slice(0, 30).reverse().map(s => s.sleep_duration);
+
+        // HRV Chart
+        const hrvCtx = document.getElementById('hrvChart');
+        if (hrvChart) hrvChart.destroy();
+        hrvChart = new Chart(hrvCtx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'HRV RMSSD (ms)',
+              data: hrvData,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: false }
+            }
+          }
+        });
+
+        // VO2 Chart
+        const vo2Ctx = document.getElementById('vo2Chart');
+        if (vo2Chart) vo2Chart.destroy();
+        vo2Chart = new Chart(vo2Ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'VO₂ Max (mL/kg/min)',
+              data: vo2Data,
+              borderColor: '#059669',
+              backgroundColor: 'rgba(5, 150, 105, 0.1)',
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: false }
+            }
+          }
+        });
+
+        // Sleep Chart
+        const sleepCtx = document.getElementById('sleepChart');
+        if (sleepChart) sleepChart.destroy();
+        sleepChart = new Chart(sleepCtx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Sleep Duration (hours)',
+              data: sleepData,
+              backgroundColor: '#8b5cf6',
+              borderColor: '#7c3aed'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, max: 12 }
+            }
+          }
+        });
+      }
+
+      function updateInsights(insights) {
+        const container = document.getElementById('insights-container');
+        if (!insights || insights.length === 0) {
+          container.innerHTML = '<p class="muted">No insights available. Upload health data to get started.</p>';
+          return;
+        }
+
+        container.innerHTML = insights.map(insight => `
+          <div class="insight ${insight.severity}">
+            <div class="insight-message">${insight.message}</div>
+            <div class="insight-time">${new Date(insight.created_at).toLocaleDateString()} • ${insight.kind}</div>
+          </div>
+        `).join('');
+      }
+
+      // Load dashboard on page load
+      document.addEventListener('DOMContentLoaded', loadDashboard);
+
+      // Refresh insights button
+      document.getElementById('refresh-insights').addEventListener('click', async () => {
+        try {
+          const resp = await fetch('http://localhost:8000/health-data/insights');
+          if (resp.ok) {
+            const data = await resp.json();
+            updateInsights(data.insights);
+          }
+        } catch (error) {
+          console.error('Failed to refresh insights:', error);
+        }
+      });
+
       // Research query form
       document.getElementById('query-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -98,16 +392,47 @@
         }
       });
 
-      // Health analysis form
-      document.getElementById('health-form').addEventListener('submit', async (e) => {
+      // Upload form
+      document.getElementById('upload-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const fileInput = document.getElementById('health-file');
-        const question = document.getElementById('health-question').value.trim();
-        if (!fileInput.files[0] || !question) return;
-        setLoading(true);
+        if (!fileInput.files[0]) return;
+        
+        const submitBtn = e.target.querySelector('button');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+        
         try {
           const formData = new FormData();
           formData.append('file', fileInput.files[0]);
+          const resp = await fetch('http://localhost:8000/health-data/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.detail || 'Upload failed');
+          
+          showUploadStatus(`Successfully processed ${data.total_samples} samples! ${data.new_insights} new insights generated.`);
+          
+          // Refresh dashboard
+          setTimeout(loadDashboard, 1000);
+          
+        } catch (err) {
+          showUploadStatus(err.message || 'Upload failed', true);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Upload & Process';
+        }
+      });
+
+      // Health analysis form
+      document.getElementById('health-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const question = document.getElementById('health-question').value.trim();
+        if (!question) return;
+        setLoading(true);
+        try {
+          const formData = new FormData();
           formData.append('question', question);
           const resp = await fetch('http://localhost:8000/health-analysis', {
             method: 'POST',
