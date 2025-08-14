@@ -25,6 +25,7 @@
       <form id="query-form">
         <label for="question">Question</label>
         <input id="question" name="question" type="text" placeholder="e.g., What improves VO2 max fastest?" required />
+        <label><input id="use-agent" name="use_agent" type="checkbox" /> Use Agent</label>
         <button type="submit">Ask</button>
       </form>
     </section>
@@ -43,6 +44,7 @@
     <section class="section">
       <h2>Results</h2>
       <div id="results" class="results">Ready.</div>
+      <div id="trace" class="results" style="margin-top: 0.75rem; display: none;"></div>
     </section>
 
     <script>
@@ -58,8 +60,20 @@
         resultsEl.textContent = `Error: ${message}`;
       }
 
-      function showAnswer(answer) {
-        resultsEl.textContent = answer ?? '';
+      function showAnswer(answer) { resultsEl.textContent = answer ?? ''; }
+      function showTrace(trace) {
+        const traceEl = document.getElementById('trace');
+        if (!trace || !trace.length) { traceEl.style.display = 'none'; traceEl.textContent = ''; return; }
+        traceEl.style.display = 'block';
+        const lines = trace.map(t => {
+          const out = t.outputs || {};
+          const parts = [];
+          if (typeof out.score !== 'undefined') parts.push(`score=${Number(out.score).toFixed(2)}`);
+          if (typeof out.num_docs !== 'undefined') parts.push(`num_docs=${out.num_docs}`);
+          if (typeof out.has_answer !== 'undefined') parts.push(`has_answer=${out.has_answer}`);
+          return `- ${t.name} → ${t.decision} (${parts.join(', ')})`;
+        });
+        traceEl.textContent = `Trace\n${lines.join('\n')}`;
       }
 
       // Research query form
@@ -69,16 +83,16 @@
         if (!question) return;
         setLoading(true);
         try {
+          const useAgent = document.getElementById('use-agent').checked;
           const form = new URLSearchParams();
           form.append('question', question);
-          const resp = await fetch('http://localhost:8000/query', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: form.toString(),
-          });
+          if (useAgent) form.append('use_agent', 'true');
+          const endpoint = useAgent ? 'http://localhost:8000/assistant/message' : 'http://localhost:8000/query';
+          const resp = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form.toString() });
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.detail || 'Request failed');
           showAnswer(data.answer);
+          showTrace(data.trace);
         } catch (err) {
           showError(err.message || String(err));
         }
