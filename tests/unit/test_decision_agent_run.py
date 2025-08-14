@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from fastapi.testclient import TestClient
 from langchain_chroma import Chroma
 
 from src.agent.decision_tree import DecisionAgent
@@ -98,6 +97,3 @@ def test_decision_agent_low_relevance_impossible(monkeypatch: Any, tmp_path) -> 
     assert isinstance(result.trace, list) and len(result.trace) > 0
     # With empty index and strict threshold, should be impossible
     assert result.status == "impossible"
-
-
-

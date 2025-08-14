@@ -34,5 +34,3 @@ def test_assistant_endpoint_use_agent_true(monkeypatch: pytest.MonkeyPatch) -> N
         # Ensure no large payloads
         for node in data["trace"]:
             assert "page_content" not in str(node)
-
-
