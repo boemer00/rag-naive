@@ -1,6 +1,6 @@
 # Longevity Insights Platform — Audit, Architecture, and Phased Plan
 
-This document captures the audit and the exact plan to build a streamlined longevity insights platform that integrates multiple device metrics into a unified view.
+This document captures the audit and the exact plan to build a streamlined longevity insights platform that integrates multiple device metrics into a unified view and offers bespoken and actionable insights to each user so they can improve key longevity metrics.
 
 Target devices: Apple Watch, Garmin, Oura, Whoop.
 Core metrics: Heart Rate Variability (HRV), VO₂ Max / Cardiorespiratory Fitness, Sleep Quality & Architecture.
@@ -168,5 +168,3 @@ We will follow a strict four-step workflow per feature/module:
 4) Test (pytest for all public interfaces and E2E flows)
 
 This document aligns exactly with the current audit and the three-phase plan: build the dashboard, standardize metrics to canonical references, and integrate WhatsApp for engagement.
-
-
