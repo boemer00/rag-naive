@@ -1,13 +1,55 @@
+# Environment files
 .env
-__pycache__/
+.env.*
 
-.DS_Store
-.vscode/
+# Python cache and coverage
+__pycache__/
 .pytest_cache/
 .coverage
 .coverage.*
+
+# Editor/IDE files
+.vscode/
+.DS_Store
+
+# Database and data files
 db/
-.xml
-export.xml
-export.xml
 *.db
+*.xml
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Test and coverage output
+htmlcov/
+*.log
+
+# OS-specific files
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Editor/IDE files
+.idea/
+*.swp
+*.swo
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Hooks and scripts output (if any)
+.claude/hooks/__pycache__/
+.claude/hooks/*.pyc
+
+# Exclude test results
+tests/__pycache__/
+tests/*.pyc
