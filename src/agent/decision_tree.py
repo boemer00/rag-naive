@@ -1,6 +1,6 @@
 """Intelligent decision-tree agent with semantic scoring, re-ranking, and query reformulation.
 
-This module defines the `DecisionAgent` class that orchestrates retrieval, assessment, 
+This module defines the `DecisionAgent` class that orchestrates retrieval, assessment,
 retries, and answer generation with a sophisticated self-healing loop featuring:
 - Semantic similarity scoring using embeddings
 - LLM-based result quality assessment
@@ -48,7 +48,7 @@ class DecisionAgent:
 
         Implements a three-pass strategy with increasing sophistication:
         1. Standard semantic retrieval with re-ranking
-        2. Filtered retrieval with domain-specific query augmentation 
+        2. Filtered retrieval with domain-specific query augmentation
         3. LLM-powered query reformulation and final retry
 
         Each pass includes LLM-based quality assessment and stops when

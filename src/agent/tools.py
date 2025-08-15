@@ -49,7 +49,6 @@ def _infer_filters_from_question(question: str) -> dict[str, Any]:
 
 def _score_docs_semantic(question: str, docs: list[Document]) -> float:
     """Semantic scoring using embedding similarity.
-    
     Uses cosine similarity between question embedding and document embeddings
     to provide more accurate relevance assessment.
     Returns score in [0, 1].
@@ -182,7 +181,6 @@ def retrieve_with_filters(ctx: AgentContext, *, index: Chroma, filters: dict[str
 
 def assess_results(ctx: AgentContext, *, docs: list[Any]) -> dict[str, Any]:
     """LLM-based assessment of retrieval results quality.
-    
     Uses both semantic similarity scoring and LLM evaluation to determine
     if the retrieved context is sufficient to answer the question.
     """
@@ -218,8 +216,7 @@ def assess_results(ctx: AgentContext, *, docs: list[Any]) -> dict[str, Any]:
 
 def rerank_documents(question: str, docs: list[Document], top_k: int | None = None) -> list[Document]:
     """Re-rank documents using embedding similarity for better relevance.
-    
-    Uses cosine similarity between question and document embeddings to 
+    Uses cosine similarity between question and document embeddings to
     re-order documents by relevance, keeping only top_k if specified.
     """
     if not docs:
@@ -265,7 +262,6 @@ def rerank_documents(question: str, docs: list[Document], top_k: int | None = No
 
 def reformulate_query(original_question: str, failed_context: str | None = None) -> str:
     """Use LLM to reformulate a query for better retrieval results.
-    
     Analyzes why the original query may have failed and creates an improved version
     with better keywords, synonyms, or alternative framing.
     """
@@ -282,7 +278,7 @@ Original Question: {question}
 
 Your task is to reformulate this question to get better search results. Consider:
 1. Adding relevant scientific/medical synonyms
-2. Including related biomarkers or mechanisms  
+2. Including related biomarkers or mechanisms
 3. Using more specific terminology
 4. Breaking complex questions into key concepts
 

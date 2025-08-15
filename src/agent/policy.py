@@ -8,14 +8,13 @@ from dataclasses import dataclass
 @dataclass
 class PolicyConfig:
     """Parameters controlling the agent's adaptive retrieval and decision strategies.
-    
     Attributes
     ----------
     max_passes : int
         Maximum number of retrieval attempts (default: 3)
     min_relevance_score : float
         Minimum relevance threshold for accepting results (0.0-1.0, default: 0.5)
-    min_context_tokens : int 
+    min_context_tokens : int
         Minimum context length required for answer generation (default: 300)
     enable_filtered_retry : bool
         Whether to attempt filtered retrieval on Pass 2 (default: True)
@@ -31,5 +30,3 @@ class PolicyConfig:
     enable_filtered_retry: bool = True
     enable_semantic_retry: bool = True
     high_confidence_threshold: float = 0.8
-
-
